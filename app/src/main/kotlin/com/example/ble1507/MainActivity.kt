@@ -133,7 +133,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
     private lateinit var bleClient: Ble1507Client
     private lateinit var colorInterpreter: QwenColorInterpreter
     private lateinit var imuEstimator: ImuNativeAttitudeEstimator
-    private lateinit var imuSpeedEstimator: ImuSpeedEstimator
+    private lateinit var attitudeTipSpeedEstimator: AttitudeTipSpeedEstimator
     private lateinit var touchDesignerClient: TouchDesignerTcpClient
     private var modelDirectoryOnly = false
     private var speechRecognizer: SpeechRecognizer? = null
@@ -256,7 +256,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         bleClient = Ble1507Client(this, this)
         colorInterpreter = QwenColorInterpreter(this)
         imuEstimator = ImuNativeAttitudeEstimator()
-        imuSpeedEstimator = ImuSpeedEstimator()
+        attitudeTipSpeedEstimator = AttitudeTipSpeedEstimator()
         val exhibitionPreferences = getSharedPreferences(EXHIBITION_PREFS, MODE_PRIVATE)
         touchDesignerHost = exhibitionPreferences
             .getString(PREF_TOUCHDESIGNER_HOST, DEFAULT_TOUCHDESIGNER_HOST)
@@ -694,7 +694,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         imuPoseHealthy = false
         statusText = "Starting IMU..."
         executeImu {
-            imuSpeedEstimator.reset()
+            attitudeTipSpeedEstimator.reset()
             val started = imuEstimator.start()
             imuEstimatorStarted = started
             if (started) openImuLog() else closeImuLog()
@@ -719,7 +719,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         statusText = "IMU stopped"
         executeImu {
             imuEstimator.stop()
-            imuSpeedEstimator.reset()
+            attitudeTipSpeedEstimator.reset()
             imuEstimatorStarted = false
             closeImuLog()
         }
@@ -1543,7 +1543,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             if (!preserveImuSession) {
                 executeImu {
                     imuEstimator.stop()
-                    imuSpeedEstimator.reset()
+                    attitudeTipSpeedEstimator.reset()
                     imuEstimatorStarted = false
                     closeImuLog()
                 }
@@ -1587,20 +1587,21 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 }
             }
             val attitude = imuEstimator.update(packet)
-            val speedEstimate = imuSpeedEstimator.update(packet, sampleReceivedAtMs)
+            var tipSpeedEstimate: AttitudeTipSpeedEstimate? = null
             if (attitude != null) {
                 latestRawAttitude = attitude
+                tipSpeedEstimate = attitudeTipSpeedEstimator.update(attitude, sampleReceivedAtMs)
                 if (syncUiState == SyncUiState.Synced) {
                     touchDesignerClient.updateMotion(
                         TouchDesignerMotionFrame(
                             attitude = attitude,
-                            speed = speedEstimate.speedFiltered,
+                            speed = tipSpeedEstimate.speedFiltered,
                             color = latestTouchDesignerColor,
                         ),
                     )
                 }
             }
-            appendImuLog(packet, attitude, speedEstimate)
+            appendImuLog(packet, attitude, tipSpeedEstimate)
             val now = sampleReceivedAtMs
             if (imuRateWindowStartedAtMs == 0L) {
                 imuRateWindowStartedAtMs = now
@@ -1645,17 +1646,14 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             } else {
                 String.format(
                     Locale.US,
-                    "sample: %.1f Hz  render: smooth\nroll: %.2f deg\npitch: %.2f deg\nyaw(rel): %.2f deg\nspeed: %.3f m/s motion: %.3f stationary:%s\nlinear: x %.3f  y %.3f  z %.3f\ntemp: %.2f C\ngyro:  x %.3f  y %.3f  z %.3f\naccel: x %.3f  y %.3f  z %.3f",
+                    "sample: %.1f Hz  render: smooth\nroll: %.2f deg\npitch: %.2f deg\nyaw(rel): %.2f deg\ntip speed: %.3f m/s raw: %.3f m/s omega: %.3f rad/s\ntemp: %.2f C\ngyro:  x %.3f  y %.3f  z %.3f\naccel: x %.3f  y %.3f  z %.3f",
                     imuSampleRateHz,
                     attitude.rollDeg,
                     attitude.pitchDeg,
                     attitude.yawDeg,
-                    speedEstimate.speedFiltered,
-                    speedEstimate.motionIndex,
-                    speedEstimate.isStationary,
-                    speedEstimate.linearAcceleration.componentX,
-                    speedEstimate.linearAcceleration.componentY,
-                    speedEstimate.linearAcceleration.componentZ,
+                    tipSpeedEstimate?.speedFiltered ?: 0f,
+                    tipSpeedEstimate?.speedRaw ?: 0f,
+                    tipSpeedEstimate?.angularSpeedRadPerSecond ?: 0f,
                     packet.temp,
                     packet.gx,
                     packet.gy,
@@ -1770,21 +1768,21 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         imuLogWriter?.apply {
             write(
                 "ts_unix_ms,timestamp_ticks,temp,gx,gy,gz,ax,ay,az,roll,pitch,yaw," +
-                    "speed_filtered,motion_index,acc_norm,gyro_norm,is_stationary," +
-                    "a_linear_x,a_linear_y,a_linear_z,vx,vy,vz\n",
+                    "tip_speed_filtered,tip_speed_raw,angular_speed_rad_s," +
+                    "delta_roll_rad,delta_pitch_rad,delta_yaw_rad,dt_seconds\n",
             )
             flush()
         }
         lastImuLogFlushAtMs = SystemClock.elapsedRealtime()
     }
 
-    private fun appendImuLog(packet: ImuPacket, attitude: AttitudeEstimate?, speed: ImuSpeedEstimate) {
+    private fun appendImuLog(packet: ImuPacket, attitude: AttitudeEstimate?, speed: AttitudeTipSpeedEstimate?) {
         val writer = imuLogWriter ?: return
         runCatching {
             val line = String.format(
                 Locale.US,
                 "%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s," +
-                    "%.6f,%.6f,%.6f,%.6f,%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
+                    "%s,%s,%s,%s,%s,%s,%s\n",
                 System.currentTimeMillis(),
                 packet.timestamp,
                 packet.temp,
@@ -1797,17 +1795,13 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 attitude?.rollDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
                 attitude?.pitchDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
                 attitude?.yawDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
-                speed.speedFiltered,
-                speed.motionIndex,
-                speed.accNorm,
-                speed.gyroNorm,
-                speed.isStationary,
-                speed.linearAcceleration.componentX,
-                speed.linearAcceleration.componentY,
-                speed.linearAcceleration.componentZ,
-                speed.velocity.componentX,
-                speed.velocity.componentY,
-                speed.velocity.componentZ,
+                speed?.speedFiltered?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.speedRaw?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.angularSpeedRadPerSecond?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.deltaRollRad?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.deltaPitchRad?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.deltaYawRad?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed?.dtSeconds?.let { "%.6f".format(Locale.US, it) } ?: "",
             )
             writer.write(line)
             val now = SystemClock.elapsedRealtime()

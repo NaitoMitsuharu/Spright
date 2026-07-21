@@ -1,6 +1,7 @@
 package com.example.ble1507
 
 import java.util.Locale
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -109,6 +110,68 @@ data class ImuSpeedEstimate(
     val velocity: ImuVector3,
     val orientation: ImuQuaternion,
 )
+
+data class AttitudeTipSpeedConfig(
+    val tipRadiusMeters: Float = 1f,
+    val smoothingAlpha: Float = 0.35f,
+    val defaultDtSeconds: Float = 1f / 60f,
+    val maxDtSeconds: Float = 0.08f,
+)
+
+data class AttitudeTipSpeedEstimate(
+    val speedFiltered: Float,
+    val speedRaw: Float,
+    val angularSpeedRadPerSecond: Float,
+    val deltaRollRad: Float,
+    val deltaPitchRad: Float,
+    val deltaYawRad: Float,
+    val dtSeconds: Float,
+)
+
+class AttitudeTipSpeedEstimator(
+    private val config: AttitudeTipSpeedConfig = AttitudeTipSpeedConfig(),
+) {
+    private var previousAttitude: AttitudeEstimate? = null
+    private var previousTimestampMs: Long? = null
+    private var speedFiltered = 0f
+
+    fun reset() {
+        previousAttitude = null
+        previousTimestampMs = null
+        speedFiltered = 0f
+    }
+
+    fun update(attitude: AttitudeEstimate, timestampMs: Long): AttitudeTipSpeedEstimate {
+        val previous = previousAttitude
+        val previousTime = previousTimestampMs
+        previousAttitude = attitude
+        previousTimestampMs = timestampMs
+        if (previous == null || previousTime == null) {
+            speedFiltered = 0f
+            return AttitudeTipSpeedEstimate(0f, 0f, 0f, 0f, 0f, 0f, config.defaultDtSeconds)
+        }
+        val dtSeconds = ((timestampMs - previousTime) / 1_000f)
+            .takeIf { it.isFinite() && it > 0f }
+            ?.coerceIn(1e-4f, config.maxDtSeconds)
+            ?: config.defaultDtSeconds
+        val deltaRoll = degreesToRadians(shortestAngleDeltaDegrees(previous.rollDeg, attitude.rollDeg))
+        val deltaPitch = degreesToRadians(shortestAngleDeltaDegrees(previous.pitchDeg, attitude.pitchDeg))
+        val deltaYaw = degreesToRadians(shortestAngleDeltaDegrees(previous.yawDeg, attitude.yawDeg))
+        val angularSpeed = sqrt(deltaRoll * deltaRoll + deltaPitch * deltaPitch + deltaYaw * deltaYaw) / dtSeconds
+        val speedRaw = config.tipRadiusMeters.coerceAtLeast(0f) * angularSpeed
+        val alpha = config.smoothingAlpha.coerceIn(0f, 1f)
+        speedFiltered = alpha * speedRaw + (1f - alpha) * speedFiltered
+        return AttitudeTipSpeedEstimate(
+            speedFiltered = speedFiltered,
+            speedRaw = speedRaw,
+            angularSpeedRadPerSecond = angularSpeed,
+            deltaRollRad = deltaRoll,
+            deltaPitchRad = deltaPitch,
+            deltaYawRad = deltaYaw,
+            dtSeconds = dtSeconds,
+        )
+    }
+}
 
 class ImuSpeedEstimator(
     private val config: ImuSpeedEstimatorConfig = ImuSpeedEstimatorConfig(),
@@ -232,6 +295,14 @@ class ImuSpeedEstimator(
         return sqrt(max(0f, motionWindowSumSquares) / motionWindow.size.coerceAtLeast(1))
     }
 }
+
+private fun shortestAngleDeltaDegrees(from: Float, to: Float): Float {
+    var delta = (to - from + 540f) % 360f - 180f
+    if (delta == -180f) delta = 180f
+    return delta
+}
+
+private fun degreesToRadians(degrees: Float): Float = (degrees * PI / 180.0).toFloat()
 
 fun estimate_speed_from_imu(
     data: List<ImuSpeedInput>,

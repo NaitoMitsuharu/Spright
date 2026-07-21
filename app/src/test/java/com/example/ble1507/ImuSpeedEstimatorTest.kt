@@ -6,6 +6,19 @@ import org.junit.Test
 
 class ImuSpeedEstimatorTest {
     @Test
+    fun attitudeDerivativeEstimatesOneMeterTipSpeed() {
+        val estimator = AttitudeTipSpeedEstimator(
+            AttitudeTipSpeedConfig(tipRadiusMeters = 1f, smoothingAlpha = 1f, maxDtSeconds = 2f),
+        )
+
+        estimator.update(AttitudeEstimate(0f, 0f, 0f), timestampMs = 0L)
+        val estimate = estimator.update(AttitudeEstimate(0f, 90f, 0f), timestampMs = 1_000L)
+
+        assertEquals(Math.PI.toFloat() / 2f, estimate.angularSpeedRadPerSecond, 0.0001f)
+        assertEquals(Math.PI.toFloat() / 2f, estimate.speedFiltered, 0.0001f)
+    }
+
+    @Test
     fun stationarySamplesConvergeToZeroSpeed() {
         val config = ImuSpeedEstimatorConfig(stationaryCountThreshold = 3)
         val estimator = ImuSpeedEstimator(config)

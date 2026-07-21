@@ -287,12 +287,12 @@ fun SprightExhibitionScreen(
                         QuickColorGestureLayer(
                             expanded = showQuickColors,
                             onExpandedChanged = { showQuickColors = it },
+                            onTap = { showColorPicker = true },
                             modifier = Modifier.fillMaxSize(),
                         )
                         QuickColorOrbit(
                             expanded = showQuickColors,
                             onColorSelected = { color ->
-                                showQuickColors = false
                                 onApplyColor(color)
                             },
                             modifier = Modifier.fillMaxSize(),
@@ -616,28 +616,35 @@ internal fun PenlightHero(
 private fun QuickColorGestureLayer(
     expanded: Boolean,
     onExpandedChanged: (Boolean) -> Unit,
+    onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.pointerInput(expanded) {
-            var points = mutableListOf<Offset>()
-            detectDragGestures(
-                onDragStart = { start -> points = mutableListOf(start) },
-                onDrag = { change, _ -> points += change.position },
-                onDragCancel = { points.clear() },
-                onDragEnd = {
-                    val currentSize = size
-                    when {
-                        expanded && isVerticalQuickColorDismissGesture(points, currentSize) ->
-                            onExpandedChanged(false)
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    if (!expanded) onTap()
+                }
+            }
+            .pointerInput(expanded) {
+                var points = mutableListOf<Offset>()
+                detectDragGestures(
+                    onDragStart = { start -> points = mutableListOf(start) },
+                    onDrag = { change, _ -> points += change.position },
+                    onDragCancel = { points.clear() },
+                    onDragEnd = {
+                        val currentSize = size
+                        when {
+                            expanded && isVerticalQuickColorDismissGesture(points, currentSize) ->
+                                onExpandedChanged(false)
 
-                        !expanded && isCircularQuickColorRevealGesture(points, currentSize) ->
-                            onExpandedChanged(true)
-                    }
-                    points.clear()
-                },
-            )
-        },
+                            !expanded && isCircularQuickColorRevealGesture(points, currentSize) ->
+                                onExpandedChanged(true)
+                        }
+                        points.clear()
+                    },
+                )
+            },
     )
 }
 
@@ -664,10 +671,10 @@ private fun QuickColorOrbit(
                 AndroidColor.CYAN,
             )
         }
-        val buttonSize = 38.dp
+        val buttonSize = 76.dp
         val centerX = maxWidth / 2f
         val centerY = maxHeight / 2f
-        val radius = (minOf(maxWidth.value, maxHeight.value) * 0.34f).dp * progress
+        val radius = (minOf(maxWidth.value, maxHeight.value) * 0.42f).dp * progress
         colors.forEachIndexed { index, color ->
             val angle = -PI / 2.0 + index * (2.0 * PI / colors.size)
             QuickColorButton(
