@@ -1,0 +1,496 @@
+{
+  "generatedAtUnixMs": 1784599899803,
+  "device": {
+    "manufacturer": "Sony",
+    "model": "XQ-FS54",
+    "sdk": 36
+  },
+  "model": "qwen3-0.6b",
+  "minLlmAccuracy": 0,
+  "ruleLeakCount": 0,
+  "ruleLeakTexts": [],
+  "caseCount": 36,
+  "accuracy": 0.4166666666666667,
+  "hexSuccessRate": 1,
+  "p50Ms": 349,
+  "p95Ms": 559,
+  "suiteResults": {
+    "development": {
+      "caseCount": 20,
+      "accuracy": 0.4,
+      "hexSuccessRate": 1,
+      "p50Ms": 349,
+      "p95Ms": 559
+    },
+    "holdout": {
+      "caseCount": 16,
+      "accuracy": 0.4375,
+      "hexSuccessRate": 1,
+      "p50Ms": 344,
+      "p95Ms": 516
+    }
+  },
+  "categoryResults": {
+    "nature": {
+      "caseCount": 4,
+      "accuracy": 0,
+      "hexSuccessRate": 1,
+      "p50Ms": 341,
+      "p95Ms": 410
+    },
+    "emotion": {
+      "caseCount": 4,
+      "accuracy": 0.5,
+      "hexSuccessRate": 1,
+      "p50Ms": 324,
+      "p95Ms": 341
+    },
+    "temperature": {
+      "caseCount": 4,
+      "accuracy": 0.5,
+      "hexSuccessRate": 1,
+      "p50Ms": 334,
+      "p95Ms": 350
+    },
+    "abstract": {
+      "caseCount": 4,
+      "accuracy": 0,
+      "hexSuccessRate": 1,
+      "p50Ms": 325,
+      "p95Ms": 356
+    },
+    "rare_object": {
+      "caseCount": 4,
+      "accuracy": 0,
+      "hexSuccessRate": 1,
+      "p50Ms": 344,
+      "p95Ms": 356
+    },
+    "metaphor": {
+      "caseCount": 4,
+      "accuracy": 0.75,
+      "hexSuccessRate": 1,
+      "p50Ms": 308,
+      "p95Ms": 391
+    },
+    "dark": {
+      "caseCount": 4,
+      "accuracy": 0.75,
+      "hexSuccessRate": 1,
+      "p50Ms": 418,
+      "p95Ms": 509
+    },
+    "neon": {
+      "caseCount": 4,
+      "accuracy": 1,
+      "hexSuccessRate": 1,
+      "p50Ms": 391,
+      "p95Ms": 508
+    },
+    "derived_brand": {
+      "caseCount": 4,
+      "accuracy": 0.25,
+      "hexSuccessRate": 1,
+      "p50Ms": 516,
+      "p95Ms": 562
+    }
+  },
+  "cases": [
+    {
+      "suite": "development",
+      "category": "nature",
+      "text": "雨に濡れた苔",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (321ms [pf:135,g:181])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 326
+    },
+    {
+      "suite": "development",
+      "category": "nature",
+      "text": "渓流のせせらぎ",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (340ms [pf:158,g:178])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 341
+    },
+    {
+      "suite": "development",
+      "category": "nature",
+      "text": "熟れた無花果の実",
+      "hex": "#F5E70A",
+      "source": "qwen3-0.6b (409ms [pf:280,g:125])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 410
+    },
+    {
+      "suite": "holdout",
+      "category": "nature",
+      "text": "秋の落ち葉が敷き詰められた小道",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (359ms [pf:217,g:139])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 367
+    },
+    {
+      "suite": "development",
+      "category": "emotion",
+      "text": "胸が締めつけられる後悔",
+      "hex": "#6D2954",
+      "source": "qwen3-0.6b (322ms [pf:177,g:141])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 322
+    },
+    {
+      "suite": "development",
+      "category": "emotion",
+      "text": "気恥ずかしさで顔が熱い",
+      "hex": "#E65332",
+      "source": "qwen3-0.6b (340ms [pf:180,g:157])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 341
+    },
+    {
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "決意を固めた静けさ",
+      "hex": "#466587",
+      "source": "qwen3-0.6b (333ms [pf:183,g:148])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 334
+    },
+    {
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "もどかしい焦り",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (324ms [pf:176,g:145])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 324
+    },
+    {
+      "suite": "development",
+      "category": "temperature",
+      "text": "湯気の立つ湯船",
+      "hex": "#E4B47D",
+      "source": "qwen3-0.6b (340ms [pf:181,g:157])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 341
+    },
+    {
+      "suite": "development",
+      "category": "temperature",
+      "text": "凍える明け方の風",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (349ms [pf:184,g:162])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 350
+    },
+    {
+      "suite": "holdout",
+      "category": "temperature",
+      "text": "うだるような暑さ",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (333ms [pf:176,g:154])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 334
+    },
+    {
+      "suite": "holdout",
+      "category": "temperature",
+      "text": "ぬるま湯につかる感覚",
+      "hex": "#EDC18E",
+      "source": "qwen3-0.6b (316ms [pf:151,g:162])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 317
+    },
+    {
+      "suite": "development",
+      "category": "abstract",
+      "text": "静寂そのものの響き",
+      "hex": "#47668A",
+      "source": "qwen3-0.6b (311ms [pf:163,g:145])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 312
+    },
+    {
+      "suite": "development",
+      "category": "abstract",
+      "text": "混沌とした喧騒",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (355ms [pf:194,g:158])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 356
+    },
+    {
+      "suite": "holdout",
+      "category": "abstract",
+      "text": "秩序だった規則性",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (335ms [pf:171,g:162])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 336
+    },
+    {
+      "suite": "holdout",
+      "category": "abstract",
+      "text": "永遠に続く退屈",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (325ms [pf:163,g:159])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 325
+    },
+    {
+      "suite": "development",
+      "category": "rare_object",
+      "text": "沈没船に付いた錆",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (329ms [pf:181,g:145])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 330
+    },
+    {
+      "suite": "development",
+      "category": "rare_object",
+      "text": "アンティークの真鍮ノブ",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (351ms [pf:201,g:148])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 352
+    },
+    {
+      "suite": "holdout",
+      "category": "rare_object",
+      "text": "琥珀の欠片",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (356ms [pf:194,g:158])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 356
+    },
+    {
+      "suite": "holdout",
+      "category": "rare_object",
+      "text": "使い込まれた革の手帳",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (342ms [pf:194,g:146])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 344
+    },
+    {
+      "suite": "development",
+      "category": "metaphor",
+      "text": "凪いだ湖面のような静けさ",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (308ms [pf:151,g:154])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 308
+    },
+    {
+      "suite": "development",
+      "category": "metaphor",
+      "text": "刃物のような鋭さ",
+      "hex": "#A3BCC0",
+      "source": "qwen3-0.6b (306ms [pf:151,g:153])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 307
+    },
+    {
+      "suite": "holdout",
+      "category": "metaphor",
+      "text": "綿菓子みたいなふんわり感",
+      "hex": "#EBC2DE",
+      "source": "qwen3-0.6b (327ms [pf:170,g:154])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 328
+    },
+    {
+      "suite": "holdout",
+      "category": "metaphor",
+      "text": "摩耗した歯車のような疲れ",
+      "hex": "#6B747B",
+      "source": "qwen3-0.6b (390ms [pf:220,g:168])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 391
+    },
+    {
+      "suite": "development",
+      "category": "dark",
+      "text": "洞窟の奥底",
+      "hex": "#101018",
+      "source": "qwen3-0.6b (420ms [pf:251,g:166])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 421
+    },
+    {
+      "suite": "development",
+      "category": "dark",
+      "text": "消えかけた燠火",
+      "hex": "#3D1409",
+      "source": "qwen3-0.6b (382ms [pf:223,g:157])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 384
+    },
+    {
+      "suite": "holdout",
+      "category": "dark",
+      "text": "閉め切った蔵の中",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (418ms [pf:252,g:163])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 418
+    },
+    {
+      "suite": "holdout",
+      "category": "dark",
+      "text": "焦げついた鍋底",
+      "hex": "#271A0F",
+      "source": "qwen3-0.6b (508ms [pf:341,g:164])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 509
+    },
+    {
+      "suite": "development",
+      "category": "neon",
+      "text": "蛍光ペンのマーカー跡",
+      "hex": "#F8FA37",
+      "source": "qwen3-0.6b (348ms [pf:181,g:164])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 349
+    },
+    {
+      "suite": "development",
+      "category": "neon",
+      "text": "レーザーポインタの光点",
+      "hex": "#FA0800",
+      "source": "qwen3-0.6b (491ms [pf:335,g:153])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 492
+    },
+    {
+      "suite": "holdout",
+      "category": "neon",
+      "text": "サイバーパンクの路地の照明",
+      "hex": "#00C3FA",
+      "source": "qwen3-0.6b (507ms [pf:335,g:169])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 508
+    },
+    {
+      "suite": "holdout",
+      "category": "neon",
+      "text": "ゲームセンターの電飾",
+      "hex": "#1BC6EB",
+      "source": "qwen3-0.6b (390ms [pf:192,g:194])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 391
+    },
+    {
+      "suite": "development",
+      "category": "derived_brand",
+      "text": "スターバックスのロゴ",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (558ms [pf:341,g:214])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 559
+    },
+    {
+      "suite": "development",
+      "category": "derived_brand",
+      "text": "マクドナルドのアーチ",
+      "hex": "#1CF3F5",
+      "source": "qwen3-0.6b (492ms [pf:288,g:200])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 492
+    },
+    {
+      "suite": "development",
+      "category": "derived_brand",
+      "text": "メルカリのブランドカラー",
+      "hex": "#E22A2D",
+      "source": "qwen3-0.6b (561ms [pf:346,g:212])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": true,
+      "elapsedMs": 562
+    },
+    {
+      "suite": "holdout",
+      "category": "derived_brand",
+      "text": "ガリガリ君のパッケージ",
+      "hex": "#E24934",
+      "source": "qwen3-0.6b (515ms [pf:284,g:228])",
+      "ruleLeak": false,
+      "hexOk": true,
+      "accepted": false,
+      "elapsedMs": 516
+    }
+  ]
+}

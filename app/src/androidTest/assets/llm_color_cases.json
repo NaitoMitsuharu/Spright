@@ -1,0 +1,46 @@
+[
+  {"suite":"development","category":"nature","text":"雨に濡れた苔","hMin":70,"hMax":150,"sMin":0.25,"sMax":1.00,"vMin":0.15,"vMax":0.60},
+  {"suite":"development","category":"nature","text":"渓流のせせらぎ","hMin":160,"hMax":210,"sMin":0.20,"sMax":0.85,"vMin":0.55,"vMax":1.00},
+  {"suite":"development","category":"nature","text":"熟れた無花果の実","hMin":290,"hMax":355,"sMin":0.35,"sMax":1.00,"vMin":0.25,"vMax":0.70},
+  {"suite":"holdout","category":"nature","text":"秋の落ち葉が敷き詰められた小道","hMin":15,"hMax":45,"sMin":0.35,"sMax":1.00,"vMin":0.30,"vMax":0.80},
+
+  {"suite":"development","category":"emotion","text":"胸が締めつけられる後悔","hMin":200,"hMax":290,"sMin":0.15,"sMax":0.85,"vMin":0.15,"vMax":0.60},
+  {"suite":"development","category":"emotion","text":"気恥ずかしさで顔が熱い","hMin":330,"hMax":20,"sMin":0.20,"sMax":0.80,"vMin":0.70,"vMax":1.00},
+  {"suite":"holdout","category":"emotion","text":"決意を固めた静けさ","hMin":200,"hMax":260,"sMin":0.40,"sMax":1.00,"vMin":0.25,"vMax":0.75},
+  {"suite":"holdout","category":"emotion","text":"もどかしい焦り","hMin":5,"hMax":40,"sMin":0.50,"sMax":1.00,"vMin":0.55,"vMax":1.00},
+
+  {"suite":"development","category":"temperature","text":"湯気の立つ湯船","hMin":10,"hMax":50,"sMin":0.10,"sMax":0.60,"vMin":0.70,"vMax":1.00},
+  {"suite":"development","category":"temperature","text":"凍える明け方の風","hMin":185,"hMax":235,"sMin":0.15,"sMax":0.80,"vMin":0.55,"vMax":1.00},
+  {"suite":"holdout","category":"temperature","text":"うだるような暑さ","hMin":0,"hMax":35,"sMin":0.55,"sMax":1.00,"vMin":0.60,"vMax":1.00},
+  {"suite":"holdout","category":"temperature","text":"ぬるま湯につかる感覚","hMin":15,"hMax":60,"sMin":0.08,"sMax":0.50,"vMin":0.60,"vMax":1.00},
+
+  {"suite":"development","category":"abstract","text":"静寂そのものの響き","hMin":180,"hMax":260,"sMin":0.00,"sMax":0.45,"vMin":0.25,"vMax":0.80},
+  {"suite":"development","category":"abstract","text":"混沌とした喧騒","hMin":280,"hMax":40,"sMin":0.55,"sMax":1.00,"vMin":0.50,"vMax":1.00},
+  {"suite":"holdout","category":"abstract","text":"秩序だった規則性","hMin":190,"hMax":250,"sMin":0.20,"sMax":0.90,"vMin":0.40,"vMax":0.95},
+  {"suite":"holdout","category":"abstract","text":"永遠に続く退屈","hMin":0,"hMax":360,"sMin":0.00,"sMax":0.20,"vMin":0.25,"vMax":0.75},
+
+  {"suite":"development","category":"rare_object","text":"沈没船に付いた錆","hMin":5,"hMax":35,"sMin":0.40,"sMax":1.00,"vMin":0.25,"vMax":0.70},
+  {"suite":"development","category":"rare_object","text":"アンティークの真鍮ノブ","hMin":35,"hMax":55,"sMin":0.35,"sMax":0.95,"vMin":0.45,"vMax":0.90},
+  {"suite":"holdout","category":"rare_object","text":"琥珀の欠片","hMin":25,"hMax":50,"sMin":0.55,"sMax":1.00,"vMin":0.55,"vMax":1.00},
+  {"suite":"holdout","category":"rare_object","text":"使い込まれた革の手帳","hMin":10,"hMax":40,"sMin":0.30,"sMax":0.90,"vMin":0.20,"vMax":0.65},
+
+  {"suite":"development","category":"metaphor","text":"凪いだ湖面のような静けさ","hMin":150,"hMax":215,"sMin":0.15,"sMax":0.75,"vMin":0.35,"vMax":0.85},
+  {"suite":"development","category":"metaphor","text":"刃物のような鋭さ","hMin":180,"hMax":240,"sMin":0.00,"sMax":0.35,"vMin":0.45,"vMax":0.90},
+  {"suite":"holdout","category":"metaphor","text":"綿菓子みたいなふんわり感","hMin":300,"hMax":20,"sMin":0.05,"sMax":0.40,"vMin":0.85,"vMax":1.00},
+  {"suite":"holdout","category":"metaphor","text":"摩耗した歯車のような疲れ","hMin":0,"hMax":360,"sMin":0.00,"sMax":0.22,"vMin":0.25,"vMax":0.65},
+
+  {"suite":"development","category":"dark","text":"洞窟の奥底","hMin":0,"hMax":360,"sMin":0.00,"sMax":0.60,"vMin":0.00,"vMax":0.18},
+  {"suite":"development","category":"dark","text":"消えかけた燠火","hMin":355,"hMax":30,"sMin":0.55,"sMax":1.00,"vMin":0.08,"vMax":0.30},
+  {"suite":"holdout","category":"dark","text":"閉め切った蔵の中","hMin":0,"hMax":360,"sMin":0.00,"sMax":0.55,"vMin":0.03,"vMax":0.25},
+  {"suite":"holdout","category":"dark","text":"焦げついた鍋底","hMin":0,"hMax":45,"sMin":0.00,"sMax":0.90,"vMin":0.03,"vMax":0.28},
+
+  {"suite":"development","category":"neon","text":"蛍光ペンのマーカー跡","hMin":45,"hMax":95,"sMin":0.70,"sMax":1.00,"vMin":0.80,"vMax":1.00},
+  {"suite":"development","category":"neon","text":"レーザーポインタの光点","hMin":340,"hMax":20,"sMin":0.70,"sMax":1.00,"vMin":0.70,"vMax":1.00},
+  {"suite":"holdout","category":"neon","text":"サイバーパンクの路地の照明","hMin":160,"hMax":330,"sMin":0.70,"sMax":1.00,"vMin":0.70,"vMax":1.00},
+  {"suite":"holdout","category":"neon","text":"ゲームセンターの電飾","hMin":0,"hMax":360,"sMin":0.70,"sMax":1.00,"vMin":0.70,"vMax":1.00},
+
+  {"suite":"development","category":"derived_brand","text":"スターバックスのロゴ","hMin":145,"hMax":180,"sMin":0.55,"sMax":1.00,"vMin":0.25,"vMax":0.70},
+  {"suite":"development","category":"derived_brand","text":"マクドナルドのアーチ","hMin":35,"hMax":60,"sMin":0.60,"sMax":1.00,"vMin":0.70,"vMax":1.00},
+  {"suite":"development","category":"derived_brand","text":"メルカリのブランドカラー","hMin":345,"hMax":15,"sMin":0.70,"sMax":1.00,"vMin":0.70,"vMax":1.00},
+  {"suite":"holdout","category":"derived_brand","text":"ガリガリ君のパッケージ","hMin":185,"hMax":215,"sMin":0.45,"sMax":1.00,"vMin":0.70,"vMax":1.00}
+]

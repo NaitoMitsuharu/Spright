@@ -1,0 +1,54 @@
+{
+  "sampleRateHz": 60,
+  "timestampTicksPerSecond": 19200000,
+  "accelerationUnit": "m\/s^2",
+  "gyroUnit": "rad\/s",
+  "eulerOutputUnit": "degree (converted from native radians)",
+  "scenarios": [
+    {
+      "axis": "roll",
+      "level": {
+        "rollDeg": -0.008302428,
+        "pitchDeg": 0,
+        "yawDeg": 0
+      },
+      "rotated": {
+        "rollDeg": 89.98597,
+        "pitchDeg": 0,
+        "yawDeg": 0
+      },
+      "primaryChangeDeg": 89.99426,
+      "crossAxisChangeDeg": 0
+    },
+    {
+      "axis": "pitch",
+      "level": {
+        "rollDeg": -0.008302428,
+        "pitchDeg": 0,
+        "yawDeg": 0
+      },
+      "rotated": {
+        "rollDeg": -98.57049,
+        "pitchDeg": 90,
+        "yawDeg": -98.59347
+      },
+      "primaryChangeDeg": 90,
+      "crossAxisChangeDeg": 98.59347
+    },
+    {
+      "axis": "yaw",
+      "level": {
+        "rollDeg": -0.008302428,
+        "pitchDeg": 0,
+        "yawDeg": 0
+      },
+      "rotated": {
+        "rollDeg": -1.088463E-4,
+        "pitchDeg": 0.01667355,
+        "yawDeg": 90.0025
+      },
+      "primaryChangeDeg": 90.0025,
+      "crossAxisChangeDeg": 0.016677856
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "model": "qwen3-0.6b",
+  "caseCount": 12,
+  "llmAcceptanceRate": 0.6666666666666666,
+  "directionAccuracyIncludingFallback": 1,
+  "p95Ms": 411,
+  "cases": [
+    {
+      "instruction": "もう少し赤っぽくして",
+      "current": "#1E3CD2",
+      "expected": "#4731AC",
+      "actual": "#4731AC",
+      "source": "qwen3-0.6b (400ms [pf:141,g:256]) raw=WARM,1,0,0; op=RED,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 401
+    },
+    {
+      "instruction": "もっと赤っぽくして",
+      "current": "#1E3CD2",
+      "expected": "#7D237A",
+      "actual": "#4731AC",
+      "source": "qwen3-0.6b (379ms [pf:141,g:236]) raw=WARM,1,0,0; op=RED,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 379
+    },
+    {
+      "instruction": "青みを少し足して",
+      "current": "#B44628",
+      "expected": "#94394F",
+      "actual": "#94394F",
+      "source": "qwen3-0.6b (351ms [pf:112,g:236]) raw=WARM,1,0,0; op=BLUE,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 368
+    },
+    {
+      "instruction": "もう少し黄色寄りにして",
+      "current": "#50A046",
+      "expected": "#70B139",
+      "actual": "#70B139",
+      "source": "qwen3-0.6b (370ms [pf:130,g:238]) raw=WARM,1,0,0; op=YELLOW,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 370
+    },
+    {
+      "instruction": "少し暖色寄りにして",
+      "current": "#785AA0",
+      "expected": "#905B88",
+      "actual": "#905B88",
+      "source": "qwen3-0.6b (355ms [pf:102,g:251]) raw=WARM,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 356
+    },
+    {
+      "instruction": "もっと濃い色にして",
+      "current": "#826E64",
+      "expected": "#755D50",
+      "actual": "#755D50",
+      "source": "qwen3-0.6b (362ms [pf:120,g:239]) raw=WARM,4,0,0; safety-fallback",
+      "llmAccepted": false,
+      "directionOk": true,
+      "elapsedMs": 362
+    },
+    {
+      "instruction": "少し明るくして",
+      "current": "#2850B4",
+      "expected": "#2D5ACA",
+      "actual": "#2D5ACA",
+      "source": "qwen3-0.6b (349ms [pf:108,g:239]) raw=WARM,1,0,0; safety-fallback",
+      "llmAccepted": false,
+      "directionOk": true,
+      "elapsedMs": 350
+    },
+    {
+      "instruction": "もっと暗くして",
+      "current": "#B4783C",
+      "expected": "#5A3C1E",
+      "actual": "#5A3C1E",
+      "source": "qwen3-0.6b (371ms [pf:131,g:238]) raw=WARM,0,0,0; safety-fallback",
+      "llmAccepted": false,
+      "directionOk": true,
+      "elapsedMs": 371
+    },
+    {
+      "instruction": "赤みを少し抑えて",
+      "current": "#DC5050",
+      "expected": "#B47070",
+      "actual": "#B47070",
+      "source": "qwen3-0.6b (411ms [pf:170,g:239]) raw=WARM,4,0,0; op=RED,4,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 411
+    },
+    {
+      "instruction": "彩度を下げて",
+      "current": "#506496",
+      "expected": "#58678B",
+      "actual": "#58678B",
+      "source": "qwen3-0.6b (361ms [pf:122,g:237]) raw=WARM,1,0,0; safety-fallback",
+      "llmAccepted": false,
+      "directionOk": true,
+      "elapsedMs": 362
+    },
+    {
+      "instruction": "赤を20%足して少し明るくして",
+      "current": "#2850B4",
+      "expected": "#5D48A1",
+      "actual": "#534090",
+      "source": "qwen3-0.6b (382ms [pf:140,g:240]) raw=WARM,1,0,0; op=RED,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 383
+    },
+    {
+      "instruction": "もう少し紫っぽくして",
+      "current": "#A06446",
+      "expected": "#A05267",
+      "actual": "#A05267",
+      "source": "qwen3-0.6b (395ms [pf:146,g:247]) raw=WARM,1,0,0; op=PURPLE,1,0,0; accepted",
+      "llmAccepted": true,
+      "directionOk": true,
+      "elapsedMs": 397
+    }
+  ]
+}
