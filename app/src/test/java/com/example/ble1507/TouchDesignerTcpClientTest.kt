@@ -16,7 +16,6 @@ import org.junit.Test
 class TouchDesignerTcpClientTest {
     @Test
     fun streamCadencesStayWithinTheRequestedLimits() {
-        assertEquals(100L, TOUCHDESIGNER_COLOR_INTERVAL_MS)
         assertTrue(TOUCHDESIGNER_IMU_INTERVAL_MS >= 17L)
     }
 
@@ -24,12 +23,16 @@ class TouchDesignerTcpClientTest {
     fun imuProtocolMatchesSpresenseDroidPracticeContract() {
         val message = TouchDesignerProtocol.imu(
             timestampMs = 1_725_000_123_456L,
-            attitude = AttitudeEstimate(12.5f, -3.25f, 179.0f),
+            frame = TouchDesignerMotionFrame(
+                attitude = AttitudeEstimate(12.5f, -3.25f, 179.0f),
+                speed = 1.75f,
+                color = 0xFF03A7EF.toInt(),
+            ),
         )
 
         assertEquals(
             "{\"cmd\":\"send_imu_values\",\"timestamp\":1725000123456," +
-                "\"data\":{\"imu_values\":\"12.5,-3.25,179.0\"}}\n",
+                "\"data\":{\"imu_values\":\"12.500000,-3.250000,179.000000,1.750000,#03A7EF\"}}\n",
             message,
         )
         assertEquals(1, message?.count { it == '\n' })
@@ -37,16 +40,21 @@ class TouchDesignerTcpClientTest {
 
     @Test
     fun imuProtocolRejectsNonFiniteAngles() {
-        assertNull(TouchDesignerProtocol.imu(1L, AttitudeEstimate(Float.NaN, 0f, 0f)))
-        assertNull(TouchDesignerProtocol.imu(1L, AttitudeEstimate(0f, Float.POSITIVE_INFINITY, 0f)))
-    }
-
-    @Test
-    fun colorProtocolUsesUppercaseRrgGbAndNewlineDelimiter() {
-        assertEquals(
-            "{\"cmd\":\"send_color_value\",\"timestamp\":42," +
-                "\"data\":{\"color\":\"#03A7EF\"}}\n",
-            TouchDesignerProtocol.color(42L, 0xFF03A7EF.toInt()),
+        assertNull(
+            TouchDesignerProtocol.imu(
+                1L,
+                TouchDesignerMotionFrame(AttitudeEstimate(Float.NaN, 0f, 0f), 0f, 0xFFFFFFFF.toInt()),
+            ),
+        )
+        assertNull(
+            TouchDesignerProtocol.imu(
+                1L,
+                TouchDesignerMotionFrame(
+                    AttitudeEstimate(0f, Float.POSITIVE_INFINITY, 0f),
+                    0f,
+                    0xFFFFFFFF.toInt(),
+                ),
+            ),
         )
     }
 
@@ -60,7 +68,7 @@ class TouchDesignerTcpClientTest {
     }
 
     @Test
-    fun tcpClientWritesBothStreamsWithoutRepeatingAnUnchangedAttitude() {
+    fun tcpClientWritesUnifiedMotionStreamWithoutRepeatingAnUnchangedFrame() {
         ServerSocket(0).use { server ->
             val lines = LinkedBlockingQueue<String>()
             val serverFinished = CountDownLatch(1)
@@ -89,23 +97,24 @@ class TouchDesignerTcpClientTest {
                 client.updateColor(0xFF1234AB.toInt())
                 client.connect("127.0.0.1", server.localPort)
                 assertTrue("TCP client did not connect", connected.await(2L, TimeUnit.SECONDS))
-                client.updateAttitude(AttitudeEstimate(1.5f, -2.5f, 3.5f))
+                client.updateMotion(
+                    TouchDesignerMotionFrame(
+                        attitude = AttitudeEstimate(1.5f, -2.5f, 3.5f),
+                        speed = 0.42f,
+                        color = 0xFF1234AB.toInt(),
+                    ),
+                )
 
                 val received = mutableListOf<String>()
                 val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2L)
-                while (
-                    System.nanoTime() < deadline &&
-                    (received.none { it.contains("send_imu_values") } ||
-                        received.none { it.contains("send_color_value") })
-                ) {
+                while (System.nanoTime() < deadline && received.none { it.contains("send_imu_values") }) {
                     lines.poll(100L, TimeUnit.MILLISECONDS)?.let(received::add)
                 }
 
                 assertTrue(received.any {
                     it.startsWith("{\"cmd\":\"send_imu_values\",\"timestamp\":") &&
-                        it.endsWith("\"data\":{\"imu_values\":\"1.5,-2.5,3.5\"}}")
+                        it.endsWith("\"data\":{\"imu_values\":\"1.500000,-2.500000,3.500000,0.420000,#1234AB\"}}")
                 })
-                assertTrue(received.any { it.contains("\"color\":\"#1234AB\"") })
 
                 // With no new sample, the coalescing IMU stream must not repeat it.
                 Thread.sleep(120L)

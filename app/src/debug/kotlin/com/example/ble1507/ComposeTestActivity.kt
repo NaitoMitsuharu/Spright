@@ -222,10 +222,10 @@ class ComposeTestActivity : ComponentActivity() {
                     touchDesignerState = touchDesignerState,
                     onTouchDesignerHostChanged = { touchDesignerHost = it },
                     onTouchDesignerPortChanged = { touchDesignerPort = it },
-                    onTouchDesignerToggle = {
+                    onTouchDesignerConnectionTest = {
                         touchDesignerState = TouchDesignerConnectionState(
                             TouchDesignerConnectionStatus.Connected,
-                            "$touchDesignerHost:$touchDesignerPort 接続中",
+                            "接続",
                         )
                     },
                     onDismiss = { dialog = null },

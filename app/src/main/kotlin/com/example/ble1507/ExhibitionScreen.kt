@@ -45,7 +45,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -117,6 +116,7 @@ import io.github.sceneview.math.Position
 import java.util.Locale
 import kotlinx.coroutines.delay
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -161,7 +161,8 @@ fun SprightExhibitionScreen(
     onGradientDurationChanged: (Float) -> Unit,
     onTouchDesignerHostChanged: (String) -> Unit,
     onTouchDesignerPortChanged: (String) -> Unit,
-    onTouchDesignerToggle: () -> Unit,
+    onTouchDesignerConnectionTest: () -> Unit,
+    onTouchDesignerDisconnect: () -> Unit,
     onApplyColor: (Int) -> Unit,
     onVoice: () -> Unit,
     onCancelVoice: () -> Unit,
@@ -176,6 +177,7 @@ fun SprightExhibitionScreen(
     var lastLogoTapAtMs by remember { mutableLongStateOf(0L) }
     var emitterHintShown by remember { mutableStateOf(false) }
     var emitterHintVisible by remember { mutableStateOf(false) }
+    var showQuickColors by remember { mutableStateOf(false) }
     val emitterHintAlpha by animateFloatAsState(
         targetValue = if (emitterHintVisible) 0.6f else 0f,
         animationSpec = tween(900),
@@ -240,11 +242,28 @@ fun SprightExhibitionScreen(
                         imuPoseHealthy = imuPoseHealthy,
                         onClick = onSync,
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(x = maxWidth * 0.25f - 22.dp, y = 15.dp),
+                            .align(Alignment.TopEnd)
+                            .padding(end = 20.dp, top = 72.dp),
+                    )
+                    TouchDesignerStatusButton(
+                        touchDesignerState = touchDesignerState,
+                        onClick = {
+                            if (touchDesignerState.status == TouchDesignerConnectionStatus.Connected) {
+                                onTouchDesignerDisconnect()
+                            } else if (
+                                touchDesignerState.status in setOf(
+                                    TouchDesignerConnectionStatus.Disconnected,
+                                    TouchDesignerConnectionStatus.Error,
+                                )
+                            ) {
+                                onTouchDesignerConnectionTest()
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 20.dp, top = 126.dp),
                     )
                     SettingsStatusButton(
-                        gradientDurationSeconds = gradientDurationSeconds,
                         touchDesignerState = touchDesignerState,
                         onClick = { showGradientSettings = !showGradientSettings },
                         modifier = Modifier
@@ -263,6 +282,19 @@ fun SprightExhibitionScreen(
                             attitudeReference = attitudeReference,
                             attitudeEnabled = imuPoseHealthy,
                             onEmitterTap = { showColorPicker = true },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        QuickColorGestureLayer(
+                            expanded = showQuickColors,
+                            onExpandedChanged = { showQuickColors = it },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        QuickColorOrbit(
+                            expanded = showQuickColors,
+                            onColorSelected = { color ->
+                                showQuickColors = false
+                                onApplyColor(color)
+                            },
                             modifier = Modifier.fillMaxSize(),
                         )
                         Text(
@@ -350,7 +382,7 @@ fun SprightExhibitionScreen(
             touchDesignerState = touchDesignerState,
             onTouchDesignerHostChanged = onTouchDesignerHostChanged,
             onTouchDesignerPortChanged = onTouchDesignerPortChanged,
-            onTouchDesignerToggle = onTouchDesignerToggle,
+            onTouchDesignerConnectionTest = onTouchDesignerConnectionTest,
             onDismiss = { showGradientSettings = false },
         )
     }
@@ -581,6 +613,136 @@ internal fun PenlightHero(
 }
 
 @Composable
+private fun QuickColorGestureLayer(
+    expanded: Boolean,
+    onExpandedChanged: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.pointerInput(expanded) {
+            var points = mutableListOf<Offset>()
+            detectDragGestures(
+                onDragStart = { start -> points = mutableListOf(start) },
+                onDrag = { change, _ -> points += change.position },
+                onDragCancel = { points.clear() },
+                onDragEnd = {
+                    val currentSize = size
+                    when {
+                        expanded && isVerticalQuickColorDismissGesture(points, currentSize) ->
+                            onExpandedChanged(false)
+
+                        !expanded && isCircularQuickColorRevealGesture(points, currentSize) ->
+                            onExpandedChanged(true)
+                    }
+                    points.clear()
+                },
+            )
+        },
+    )
+}
+
+@Composable
+private fun QuickColorOrbit(
+    expanded: Boolean,
+    onColorSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val progress by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f,
+        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+        label = "quickColorOrbit",
+    )
+    if (progress <= 0.01f && !expanded) return
+    BoxWithConstraints(modifier = modifier) {
+        val colors = remember {
+            listOf(
+                AndroidColor.RED,
+                AndroidColor.GREEN,
+                AndroidColor.BLUE,
+                AndroidColor.YELLOW,
+                AndroidColor.rgb(170, 80, 255),
+                AndroidColor.CYAN,
+            )
+        }
+        val buttonSize = 38.dp
+        val centerX = maxWidth / 2f
+        val centerY = maxHeight / 2f
+        val radius = (minOf(maxWidth.value, maxHeight.value) * 0.34f).dp * progress
+        colors.forEachIndexed { index, color ->
+            val angle = -PI / 2.0 + index * (2.0 * PI / colors.size)
+            QuickColorButton(
+                color = color,
+                enabled = expanded && progress > 0.92f,
+                onClick = { onColorSelected(color) },
+                modifier = Modifier
+                    .offset(
+                        x = centerX + radius * cos(angle).toFloat() - buttonSize / 2f,
+                        y = centerY + radius * sin(angle).toFloat() - buttonSize / 2f,
+                    )
+                    .size(buttonSize)
+                    .alpha(progress),
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickColorButton(
+    color: Int,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .background(Color(color), CircleShape)
+            .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape)
+            .pointerInput(enabled) {
+                detectTapGestures {
+                    if (enabled) onClick()
+                }
+            },
+    )
+}
+
+private fun isCircularQuickColorRevealGesture(points: List<Offset>, size: IntSize): Boolean {
+    if (points.size < 12 || size.width <= 0 || size.height <= 0) return false
+    val center = Offset(size.width / 2f, size.height / 2f)
+    val minDimension = minOf(size.width, size.height).toFloat()
+    val vectors = points.map { it - center }
+    val radii = vectors.map { it.getDistance() }
+    val averageRadius = radii.average().toFloat()
+    if (averageRadius !in (minDimension * 0.16f)..(minDimension * 0.52f)) return false
+    val radiusDeviation = radii.map { abs(it - averageRadius) }.average().toFloat()
+    if (radiusDeviation > averageRadius * 0.42f) return false
+    val angularTravel = vectors
+        .zipWithNext()
+        .sumOf { (from, to) ->
+            abs(shortestAngleDelta(atan2Degrees(from.y, from.x), atan2Degrees(to.y, to.x))).toDouble()
+        }
+        .toFloat()
+    val pathLength = points.zipWithNext().sumOf { (from, to) -> (to - from).getDistance().toDouble() }.toFloat()
+    return angularTravel > 290f && pathLength > averageRadius * 4.1f
+}
+
+private fun isVerticalQuickColorDismissGesture(points: List<Offset>, size: IntSize): Boolean {
+    if (points.size < 4 || size.height <= 0) return false
+    val start = points.first()
+    val end = points.last()
+    val delta = end - start
+    return abs(delta.y) > size.height * 0.30f && abs(delta.y) > abs(delta.x) * 1.8f
+}
+
+private fun atan2Degrees(y: Float, x: Float): Float =
+    (kotlin.math.atan2(y, x) * 180.0 / PI).toFloat()
+
+private fun shortestAngleDelta(from: Float, to: Float): Float {
+    var delta = (to - from + 540f) % 360f - 180f
+    if (delta == -180f) delta = 180f
+    return delta
+}
+
+@Composable
 internal fun PenlightFallback(color: Int, error: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -637,13 +799,12 @@ private fun BleStatusButton(connectionState: String, onClick: () -> Unit, modifi
 
 @Composable
 private fun SettingsStatusButton(
-    gradientDurationSeconds: Float,
     touchDesignerState: TouchDesignerConnectionState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val touchDesignerConnected = touchDesignerState.status == TouchDesignerConnectionStatus.Connected
-    val active = gradientDurationSeconds > 0f || touchDesignerConnected
+    val active = touchDesignerConnected
     val color = if (active) Color(0xFFC8D7E9) else Color(0xFF697386)
     Box(contentAlignment = Alignment.Center, modifier = modifier.size(48.dp)) {
         IconButton(
@@ -660,13 +821,86 @@ private fun SettingsStatusButton(
                 modifier = Modifier.size(20.dp),
             )
         }
-        if (active) {
-            Box(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .offset(y = (-3).dp)
-                    .size(4.dp)
-                    .background(Color(0xFFC8D7E9), CircleShape),
+    }
+}
+
+@Composable
+private fun TouchDesignerStatusButton(
+    touchDesignerState: TouchDesignerConnectionState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val connected = touchDesignerState.status == TouchDesignerConnectionStatus.Connected
+    val connecting = touchDesignerState.status == TouchDesignerConnectionStatus.Connecting
+    val enabled = !connecting
+    val baseColor = when (touchDesignerState.status) {
+        TouchDesignerConnectionStatus.Connected -> Color(0xFF4ADEDE)
+        TouchDesignerConnectionStatus.Connecting -> Color(0xFFFFB85C)
+        TouchDesignerConnectionStatus.Error -> Color(0xFF697386)
+        TouchDesignerConnectionStatus.Disconnected -> Color(0xFF697386)
+    }
+    val pulse = rememberInfiniteTransition(label = "tdPulse").animateFloat(
+        initialValue = 0.62f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
+        label = "tdPulseAlpha",
+    ).value
+    val iconColor = if (connecting) baseColor.copy(alpha = pulse) else baseColor
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .size(48.dp)
+            .background(
+                if (connected) iconColor.copy(alpha = 0.16f) else Color(0xB5101726),
+                CircleShape,
+            )
+            .border(1.dp, iconColor.copy(alpha = 0.72f), CircleShape),
+    ) {
+        TouchDesignerGlyph(
+            tint = if (enabled) iconColor else iconColor.copy(alpha = 0.4f),
+            modifier = Modifier.size(22.dp),
+        )
+    }
+}
+
+@Composable
+private fun TouchDesignerGlyph(tint: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val stroke = size.minDimension * 0.075f
+        val corner = size.minDimension * 0.08f
+        val tile = Size(size.width * 0.32f, size.height * 0.32f)
+        val left = Offset(size.width * 0.08f, size.height * 0.15f)
+        val right = Offset(size.width * 0.60f, size.height * 0.15f)
+        val bottom = Offset(size.width * 0.34f, size.height * 0.58f)
+
+        listOf(
+            left + Offset(tile.width, tile.height / 2f) to right + Offset(0f, tile.height / 2f),
+            left + Offset(tile.width * 0.7f, tile.height) to bottom + Offset(tile.width * 0.3f, 0f),
+            right + Offset(tile.width * 0.3f, tile.height) to bottom + Offset(tile.width * 0.7f, 0f),
+        ).forEach { (start, end) ->
+            drawLine(
+                color = tint.copy(alpha = 0.72f),
+                start = start,
+                end = end,
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+
+        listOf(left, right, bottom).forEachIndexed { index, topLeft ->
+            drawRoundRect(
+                color = if (index == 1) tint.copy(alpha = 0.28f) else tint.copy(alpha = 0.16f),
+                topLeft = topLeft,
+                size = tile,
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner, corner),
+            )
+            drawRoundRect(
+                color = tint,
+                topLeft = topLeft,
+                size = tile,
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner, corner),
+                style = Stroke(width = stroke),
             )
         }
     }
@@ -684,7 +918,7 @@ internal fun SettingsPopup(
     touchDesignerState: TouchDesignerConnectionState,
     onTouchDesignerHostChanged: (String) -> Unit,
     onTouchDesignerPortChanged: (String) -> Unit,
-    onTouchDesignerToggle: () -> Unit,
+    onTouchDesignerConnectionTest: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -823,9 +1057,13 @@ internal fun SettingsPopup(
                         )
                     }
                     Spacer(Modifier.width(8.dp))
+                    val connectEnabled = touchDesignerState.status in setOf(
+                        TouchDesignerConnectionStatus.Disconnected,
+                        TouchDesignerConnectionStatus.Error,
+                    )
                     Button(
-                        onClick = onTouchDesignerToggle,
-                        enabled = touchDesignerState.status != TouchDesignerConnectionStatus.Connecting,
+                        onClick = onTouchDesignerConnectionTest,
+                        enabled = connectEnabled,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White.copy(alpha = 0.10f),
                             contentColor = Color(0xFFD9E3EF),
@@ -833,19 +1071,12 @@ internal fun SettingsPopup(
                             disabledContentColor = Color(0xFF68758A),
                         ),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 13.dp,
+                            horizontal = 12.dp,
                             vertical = 4.dp,
                         ),
                         modifier = Modifier.height(34.dp),
                     ) {
-                        Text(
-                            if (touchDesignerState.status == TouchDesignerConnectionStatus.Connected) {
-                                "切断"
-                            } else {
-                                "接続"
-                            },
-                            fontSize = 10.sp,
-                        )
+                        Text("接続テスト", fontSize = 10.sp)
                     }
                 }
             }
@@ -912,7 +1143,62 @@ private fun SyncStatusButton(
             )
             .border(1.dp, color.copy(alpha = 0.72f), CircleShape),
     ) {
-        Icon(Icons.Filled.Sync, contentDescription = "IMU同期", tint = color, modifier = Modifier.size(23.dp))
+        PenlightWaveGlyph(
+            tint = color,
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+@Composable
+private fun PenlightWaveGlyph(tint: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val stroke = size.minDimension * 0.085f
+        val pivot = Offset(size.width * 0.46f, size.height * 0.60f)
+        drawArc(
+            color = tint.copy(alpha = 0.52f),
+            startAngle = 205f,
+            sweepAngle = 92f,
+            useCenter = false,
+            topLeft = Offset(size.width * 0.02f, size.height * 0.02f),
+            size = Size(size.width * 0.92f, size.height * 0.92f),
+            style = Stroke(width = stroke * 0.68f, cap = StrokeCap.Round),
+        )
+        drawArc(
+            color = tint.copy(alpha = 0.82f),
+            startAngle = 215f,
+            sweepAngle = 66f,
+            useCenter = false,
+            topLeft = Offset(size.width * 0.14f, size.height * 0.12f),
+            size = Size(size.width * 0.68f, size.height * 0.68f),
+            style = Stroke(width = stroke * 0.74f, cap = StrokeCap.Round),
+        )
+        rotate(degrees = -32f, pivot = pivot) {
+            drawRoundRect(
+                color = tint.copy(alpha = 0.20f),
+                topLeft = Offset(size.width * 0.38f, size.height * 0.12f),
+                size = Size(size.width * 0.2f, size.height * 0.28f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(stroke, stroke),
+            )
+            drawRoundRect(
+                color = tint,
+                topLeft = Offset(size.width * 0.40f, size.height * 0.35f),
+                size = Size(size.width * 0.16f, size.height * 0.48f),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(stroke, stroke),
+            )
+            drawLine(
+                color = tint,
+                start = Offset(size.width * 0.40f, size.height * 0.45f),
+                end = Offset(size.width * 0.56f, size.height * 0.45f),
+                strokeWidth = stroke * 0.72f,
+                cap = StrokeCap.Round,
+            )
+            drawCircle(
+                color = tint.copy(alpha = 0.9f),
+                radius = size.minDimension * 0.065f,
+                center = Offset(size.width * 0.48f, size.height * 0.16f),
+            )
+        }
     }
 }
 

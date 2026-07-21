@@ -133,10 +133,12 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
     private lateinit var bleClient: Ble1507Client
     private lateinit var colorInterpreter: QwenColorInterpreter
     private lateinit var imuEstimator: ImuNativeAttitudeEstimator
+    private lateinit var imuSpeedEstimator: ImuSpeedEstimator
     private lateinit var touchDesignerClient: TouchDesignerTcpClient
     private var modelDirectoryOnly = false
     private var speechRecognizer: SpeechRecognizer? = null
     private var speechRecognizerGeneration = 0L
+    private var speechRecognizerOnDevice = false
     private var offlineModelDownloadRecognizer: SpeechRecognizer? = null
     private var offlineSupportCheckRecognizer: SpeechRecognizer? = null
     private var isVoiceListening = false
@@ -195,6 +197,8 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
     private var sceneAttitudeReference by mutableStateOf(AttitudeEstimate(0f, 0f, 0f))
     @Volatile
     private var latestRawAttitude = AttitudeEstimate(0f, 0f, 0f)
+    @Volatile
+    private var latestTouchDesignerColor = AndroidColor.WHITE
     private val messageLog = mutableStateListOf<String>()
     private var showDiagBondRecovery by mutableStateOf(false)
     private var showBondHint by mutableStateOf(false)
@@ -252,6 +256,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         bleClient = Ble1507Client(this, this)
         colorInterpreter = QwenColorInterpreter(this)
         imuEstimator = ImuNativeAttitudeEstimator()
+        imuSpeedEstimator = ImuSpeedEstimator()
         val exhibitionPreferences = getSharedPreferences(EXHIBITION_PREFS, MODE_PRIVATE)
         touchDesignerHost = exhibitionPreferences
             .getString(PREF_TOUCHDESIGNER_HOST, DEFAULT_TOUCHDESIGNER_HOST)
@@ -262,6 +267,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         touchDesignerClient = TouchDesignerTcpClient { state ->
             runOnUiThread { touchDesignerState = state }
         }
+        latestTouchDesignerColor = selectedColor
         touchDesignerClient.updateColor(selectedColor)
         bleClient.register()
         shouldMaintainBleConnection = exhibitionPreferences
@@ -322,7 +328,8 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 },
                 onTouchDesignerHostChanged = ::updateTouchDesignerHost,
                 onTouchDesignerPortChanged = ::updateTouchDesignerPort,
-                onTouchDesignerToggle = ::toggleTouchDesignerConnection,
+                onTouchDesignerConnectionTest = ::runTouchDesignerConnectionTest,
+                onTouchDesignerDisconnect = ::disconnectTouchDesigner,
                 onApplyColor = { color -> sendColor(color, gradientDurationSeconds) },
                 onVoice = ::startVoiceInput,
                 onCancelVoice = ::cancelVoiceInput,
@@ -414,16 +421,19 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         }
     }
 
-    private fun toggleTouchDesignerConnection() {
-        if (
-            touchDesignerState.status == TouchDesignerConnectionStatus.Connected ||
-            touchDesignerState.status == TouchDesignerConnectionStatus.Connecting
-        ) {
-            touchDesignerClient.disconnect()
+    private fun runTouchDesignerConnectionTest() {
+        if (touchDesignerState.status == TouchDesignerConnectionStatus.Connecting) {
             return
         }
         val port = touchDesignerPort.toIntOrNull() ?: 0
         touchDesignerClient.connect(touchDesignerHost, port)
+    }
+
+    private fun disconnectTouchDesigner() {
+        if (touchDesignerState.status != TouchDesignerConnectionStatus.Connected) {
+            return
+        }
+        touchDesignerClient.disconnect()
     }
 
     private fun connect() {
@@ -684,6 +694,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         imuPoseHealthy = false
         statusText = "Starting IMU..."
         executeImu {
+            imuSpeedEstimator.reset()
             val started = imuEstimator.start()
             imuEstimatorStarted = started
             if (started) openImuLog() else closeImuLog()
@@ -708,6 +719,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         statusText = "IMU stopped"
         executeImu {
             imuEstimator.stop()
+            imuSpeedEstimator.reset()
             imuEstimatorStarted = false
             closeImuLog()
         }
@@ -965,13 +977,14 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         }
         offlineRetryAttempted = false
         offlineLanguagePackMissing = false
-        ensureSpeechRecognizer()
+        val preferOffline = shouldPreferOfflineRecognition()
+        ensureSpeechRecognizer(preferOffline = preferOffline)
         if (isVoiceListening) {
             cancelSpeechTimeout()
             speechRecognizer?.cancel()
             isVoiceListening = false
         }
-        startListeningWithRecovery()
+        startListeningWithRecovery(preferOffline = preferOffline)
     }
 
     private fun cancelVoiceInput() {
@@ -985,12 +998,22 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         statusText = "音声入力をキャンセルしました"
     }
 
-    private fun ensureSpeechRecognizer() {
-        if (speechRecognizer != null) {
+    private fun ensureSpeechRecognizer(preferOffline: Boolean = false) {
+        val useOnDeviceRecognizer = preferOffline && SpeechRecognizer.isOnDeviceRecognitionAvailable(this)
+        if (speechRecognizer != null && speechRecognizerOnDevice == useOnDeviceRecognizer) {
             return
         }
+        if (speechRecognizer != null) {
+            releaseSpeechRecognizer()
+        }
         val listenerGeneration = ++speechRecognizerGeneration
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).also { recognizer ->
+        speechRecognizerOnDevice = useOnDeviceRecognizer
+        val recognizer = if (useOnDeviceRecognizer) {
+            SpeechRecognizer.createOnDeviceSpeechRecognizer(this)
+        } else {
+            SpeechRecognizer.createSpeechRecognizer(this)
+        }
+        speechRecognizer = recognizer.also { recognizer ->
             recognizer.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
                     if (listenerGeneration != speechRecognizerGeneration) return
@@ -1046,7 +1069,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                     if (!offlineRetryAttempted && onlineServiceUnavailable) {
                         offlineRetryAttempted = true
                         statusText = "オンライン認識に失敗したため日本語オフライン認識へ切り替えます"
-                        recreateSpeechRecognizer()
+                        recreateSpeechRecognizer(preferOffline = true)
                         lifecycleScope.launch {
                             delay(250L)
                             startListeningWithRecovery(preferOffline = true)
@@ -1059,7 +1082,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                         keepRecognizedText = false,
                     )
                     if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED) {
-                        recreateSpeechRecognizer()
+                        recreateSpeechRecognizer(preferOffline = currentRecognitionOffline)
                     }
                 }
 
@@ -1135,9 +1158,9 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         android.util.Log.d("BLE1507V", "$source result='$liveText'")
     }
 
-    private fun recreateSpeechRecognizer() {
+    private fun recreateSpeechRecognizer(preferOffline: Boolean = currentRecognitionOffline) {
         releaseSpeechRecognizer()
-        ensureSpeechRecognizer()
+        ensureSpeechRecognizer(preferOffline = preferOffline)
     }
 
     private fun releaseSpeechRecognizer() {
@@ -1149,15 +1172,16 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         speechRecognizer?.cancel()
         speechRecognizer?.destroy()
         speechRecognizer = null
+        speechRecognizerOnDevice = false
     }
 
     private fun startListeningWithRecovery() {
-        startListeningWithRecovery(preferOffline = false)
+        startListeningWithRecovery(preferOffline = shouldPreferOfflineRecognition())
     }
 
     private fun startListeningWithRecovery(preferOffline: Boolean) {
         val recognizer = speechRecognizer ?: run {
-            ensureSpeechRecognizer()
+            ensureSpeechRecognizer(preferOffline = preferOffline)
             speechRecognizer
         } ?: return
         speechEndedAtMs = null
@@ -1173,7 +1197,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         runCatching {
             recognizer.startListening(intent)
         }.onFailure {
-            recreateSpeechRecognizer()
+            recreateSpeechRecognizer(preferOffline = preferOffline)
             runCatching {
                 speechRecognizer?.startListening(intent)
             }.onFailure {
@@ -1182,6 +1206,9 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             }
         }
     }
+
+    private fun shouldPreferOfflineRecognition(): Boolean =
+        offlineSpeechPackState == SPEECH_PACK_STATE_READY && SpeechRecognizer.isOnDeviceRecognitionAvailable(this)
 
     private fun buildSpeechRecognizerIntent(
         preferOffline: Boolean,
@@ -1516,6 +1543,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             if (!preserveImuSession) {
                 executeImu {
                     imuEstimator.stop()
+                    imuSpeedEstimator.reset()
                     imuEstimatorStarted = false
                     closeImuLog()
                 }
@@ -1559,11 +1587,20 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 }
             }
             val attitude = imuEstimator.update(packet)
+            val speedEstimate = imuSpeedEstimator.update(packet, sampleReceivedAtMs)
             if (attitude != null) {
                 latestRawAttitude = attitude
-                touchDesignerClient.updateAttitude(attitude)
+                if (syncUiState == SyncUiState.Synced) {
+                    touchDesignerClient.updateMotion(
+                        TouchDesignerMotionFrame(
+                            attitude = attitude,
+                            speed = speedEstimate.speedFiltered,
+                            color = latestTouchDesignerColor,
+                        ),
+                    )
+                }
             }
-            appendImuLog(packet, attitude)
+            appendImuLog(packet, attitude, speedEstimate)
             val now = sampleReceivedAtMs
             if (imuRateWindowStartedAtMs == 0L) {
                 imuRateWindowStartedAtMs = now
@@ -1608,11 +1645,17 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             } else {
                 String.format(
                     Locale.US,
-                    "sample: %.1f Hz  render: smooth\nroll: %.2f deg\npitch: %.2f deg\nyaw(rel): %.2f deg\ntemp: %.2f C\ngyro:  x %.3f  y %.3f  z %.3f\naccel: x %.3f  y %.3f  z %.3f",
+                    "sample: %.1f Hz  render: smooth\nroll: %.2f deg\npitch: %.2f deg\nyaw(rel): %.2f deg\nspeed: %.3f m/s motion: %.3f stationary:%s\nlinear: x %.3f  y %.3f  z %.3f\ntemp: %.2f C\ngyro:  x %.3f  y %.3f  z %.3f\naccel: x %.3f  y %.3f  z %.3f",
                     imuSampleRateHz,
                     attitude.rollDeg,
                     attitude.pitchDeg,
                     attitude.yawDeg,
+                    speedEstimate.speedFiltered,
+                    speedEstimate.motionIndex,
+                    speedEstimate.isStationary,
+                    speedEstimate.linearAcceleration.componentX,
+                    speedEstimate.linearAcceleration.componentY,
+                    speedEstimate.linearAcceleration.componentZ,
                     packet.temp,
                     packet.gx,
                     packet.gy,
@@ -1655,6 +1698,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         }
         // The screen and GLB only commit colors that the penlight acknowledged.
         selectedColor = pending.color
+        latestTouchDesignerColor = selectedColor
         touchDesignerClient.updateColor(selectedColor)
         val stepCount = operation.stepCount
         if (pending.step >= stepCount) {
@@ -1724,18 +1768,23 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         }
         imuLogPath = "log: ${logFile.absolutePath}"
         imuLogWriter?.apply {
-            write("ts_unix_ms,timestamp_ticks,temp,gx,gy,gz,ax,ay,az,roll,pitch,yaw\n")
+            write(
+                "ts_unix_ms,timestamp_ticks,temp,gx,gy,gz,ax,ay,az,roll,pitch,yaw," +
+                    "speed_filtered,motion_index,acc_norm,gyro_norm,is_stationary," +
+                    "a_linear_x,a_linear_y,a_linear_z,vx,vy,vz\n",
+            )
             flush()
         }
         lastImuLogFlushAtMs = SystemClock.elapsedRealtime()
     }
 
-    private fun appendImuLog(packet: ImuPacket, attitude: AttitudeEstimate?) {
+    private fun appendImuLog(packet: ImuPacket, attitude: AttitudeEstimate?, speed: ImuSpeedEstimate) {
         val writer = imuLogWriter ?: return
         runCatching {
             val line = String.format(
                 Locale.US,
-                "%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s\n",
+                "%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%s,%s,%s," +
+                    "%.6f,%.6f,%.6f,%.6f,%s,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
                 System.currentTimeMillis(),
                 packet.timestamp,
                 packet.temp,
@@ -1748,6 +1797,17 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 attitude?.rollDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
                 attitude?.pitchDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
                 attitude?.yawDeg?.let { "%.6f".format(Locale.US, it) } ?: "",
+                speed.speedFiltered,
+                speed.motionIndex,
+                speed.accNorm,
+                speed.gyroNorm,
+                speed.isStationary,
+                speed.linearAcceleration.componentX,
+                speed.linearAcceleration.componentY,
+                speed.linearAcceleration.componentZ,
+                speed.velocity.componentX,
+                speed.velocity.componentY,
+                speed.velocity.componentZ,
             )
             writer.write(line)
             val now = SystemClock.elapsedRealtime()

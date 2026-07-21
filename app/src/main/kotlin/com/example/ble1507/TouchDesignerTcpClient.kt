@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 internal const val TOUCHDESIGNER_IMU_INTERVAL_MS = 17L
-internal const val TOUCHDESIGNER_COLOR_INTERVAL_MS = 100L
 
 enum class TouchDesignerConnectionStatus {
     Disconnected,
@@ -29,27 +28,46 @@ data class TouchDesignerConnectionState(
     val message: String = "未接続",
 )
 
+data class TouchDesignerMotionFrame(
+    val attitude: AttitudeEstimate,
+    val speed: Float,
+    val color: Int,
+)
+
 /** Newline-delimited UTF-8 JSON contract consumed by the TouchDesigner TCP server. */
 internal object TouchDesignerProtocol {
-    fun imu(timestampMs: Long, attitude: AttitudeEstimate): String? {
-        if (!attitude.rollDeg.isFinite() || !attitude.pitchDeg.isFinite() || !attitude.yawDeg.isFinite()) {
-            return null
-        }
-        val values = "${attitude.rollDeg},${attitude.pitchDeg},${attitude.yawDeg}"
-        return "{\"cmd\":\"send_imu_values\",\"timestamp\":$timestampMs," +
-            "\"data\":{\"imu_values\":\"$values\"}}\n"
+    fun connectionTest(timestampMs: Long): String {
+        return "{\"cmd\":\"connection_test\",\"timestamp\":$timestampMs}\n"
     }
 
-    fun color(timestampMs: Long, color: Int): String {
+    fun imu(timestampMs: Long, frame: TouchDesignerMotionFrame): String? {
+        val attitude = frame.attitude
+        if (
+            !attitude.rollDeg.isFinite() ||
+            !attitude.pitchDeg.isFinite() ||
+            !attitude.yawDeg.isFinite() ||
+            !frame.speed.isFinite()
+        ) {
+            return null
+        }
         val hex = String.format(
             Locale.US,
             "#%02X%02X%02X",
-            color shr 16 and 0xFF,
-            color shr 8 and 0xFF,
-            color and 0xFF,
+            frame.color shr 16 and 0xFF,
+            frame.color shr 8 and 0xFF,
+            frame.color and 0xFF,
         )
-        return "{\"cmd\":\"send_color_value\",\"timestamp\":$timestampMs," +
-            "\"data\":{\"color\":\"$hex\"}}\n"
+        val values = String.format(
+            Locale.US,
+            "%.6f,%.6f,%.6f,%.6f,%s",
+            attitude.rollDeg,
+            attitude.pitchDeg,
+            attitude.yawDeg,
+            frame.speed.coerceAtLeast(0f),
+            hex,
+        )
+        return "{\"cmd\":\"send_imu_values\",\"timestamp\":$timestampMs," +
+            "\"data\":{\"imu_values\":\"$values\"}}\n"
     }
 }
 
@@ -70,38 +88,32 @@ internal fun isValidTouchDesignerHost(host: String): Boolean {
  *
  * IMU and BLE callbacks only replace atomic snapshots. A dedicated network
  * executor sends the newest attitude at no more than 60 Hz and the current
- * color at 10 Hz, so a slow or absent TouchDesigner server cannot stall either
- * sensor processing or BLE writes.
+ * color in the same message, so a slow or absent TouchDesigner server cannot
+ * stall either sensor processing or BLE writes.
  */
 class TouchDesignerTcpClient(
     private val onStateChanged: (TouchDesignerConnectionState) -> Unit,
 ) : AutoCloseable {
-    private data class SequencedAttitude(val sequence: Long, val value: AttitudeEstimate)
+    private data class SequencedMotionFrame(val sequence: Long, val value: TouchDesignerMotionFrame)
 
     private val executor = Executors.newSingleThreadScheduledExecutor { runnable ->
         Thread(runnable, "spright-touchdesigner").apply { priority = Thread.NORM_PRIORITY }
     }
-    private val attitudeSequence = AtomicLong(0L)
-    private val latestAttitude = AtomicReference<SequencedAttitude?>(null)
+    private val motionSequence = AtomicLong(0L)
+    private val latestMotionFrame = AtomicReference<SequencedMotionFrame?>(null)
     private val latestColor = AtomicReference(0xFFFFFFFF.toInt())
 
     @Volatile
     private var closed = false
     private var socket: Socket? = null
     private var writer: BufferedWriter? = null
-    private var lastSentAttitudeSequence = -1L
+    private var lastSentMotionSequence = -1L
 
     init {
         executor.scheduleWithFixedDelay(
-            ::sendLatestAttitude,
+            ::sendLatestMotionFrame,
             0L,
             TOUCHDESIGNER_IMU_INTERVAL_MS,
-            TimeUnit.MILLISECONDS,
-        )
-        executor.scheduleWithFixedDelay(
-            ::sendCurrentColor,
-            0L,
-            TOUCHDESIGNER_COLOR_INTERVAL_MS,
             TimeUnit.MILLISECONDS,
         )
     }
@@ -118,7 +130,7 @@ class TouchDesignerTcpClient(
             return
         }
         if (closed) return
-        publish(TouchDesignerConnectionStatus.Connecting, "$normalizedHost:$port に接続中")
+        publish(TouchDesignerConnectionStatus.Connecting, "$normalizedHost:$port 接続テスト中")
         executor.execute {
             closeSocket()
             try {
@@ -129,8 +141,11 @@ class TouchDesignerTcpClient(
                 }
                 socket = newSocket
                 writer = BufferedWriter(OutputStreamWriter(newSocket.getOutputStream(), StandardCharsets.UTF_8))
-                lastSentAttitudeSequence = -1L
-                publish(TouchDesignerConnectionStatus.Connected, "$normalizedHost:$port 接続中")
+                lastSentMotionSequence = -1L
+                if (!write(TouchDesignerProtocol.connectionTest(System.currentTimeMillis()))) {
+                    return@execute
+                }
+                publish(TouchDesignerConnectionStatus.Connected, "接続")
             } catch (error: Throwable) {
                 Log.w(TAG, "Connection to TouchDesigner failed", error)
                 closeSocket()
@@ -147,28 +162,32 @@ class TouchDesignerTcpClient(
         }
     }
 
-    fun updateAttitude(attitude: AttitudeEstimate) {
-        if (closed || !attitude.rollDeg.isFinite() || !attitude.pitchDeg.isFinite() || !attitude.yawDeg.isFinite()) {
+    fun updateMotion(frame: TouchDesignerMotionFrame) {
+        val attitude = frame.attitude
+        if (
+            closed ||
+            !attitude.rollDeg.isFinite() ||
+            !attitude.pitchDeg.isFinite() ||
+            !attitude.yawDeg.isFinite() ||
+            !frame.speed.isFinite()
+        ) {
             return
         }
-        latestAttitude.set(SequencedAttitude(attitudeSequence.incrementAndGet(), attitude))
+        latestColor.set(frame.color)
+        latestMotionFrame.set(SequencedMotionFrame(motionSequence.incrementAndGet(), frame))
     }
 
     fun updateColor(color: Int) {
         if (!closed) latestColor.set(color)
     }
 
-    private fun sendLatestAttitude() {
-        val snapshot = latestAttitude.get() ?: return
-        if (snapshot.sequence == lastSentAttitudeSequence) return
+    private fun sendLatestMotionFrame() {
+        val snapshot = latestMotionFrame.get() ?: return
+        if (snapshot.sequence == lastSentMotionSequence) return
         val message = TouchDesignerProtocol.imu(System.currentTimeMillis(), snapshot.value) ?: return
         if (write(message)) {
-            lastSentAttitudeSequence = snapshot.sequence
+            lastSentMotionSequence = snapshot.sequence
         }
-    }
-
-    private fun sendCurrentColor() {
-        write(TouchDesignerProtocol.color(System.currentTimeMillis(), latestColor.get()))
     }
 
     private fun write(message: String): Boolean {
