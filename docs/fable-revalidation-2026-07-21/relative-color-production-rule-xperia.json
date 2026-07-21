@@ -1,0 +1,130 @@
+{
+  "generatedAtUnixMs": 1784599838436,
+  "model": "qwen3-0.6b",
+  "caseCount": 12,
+  "ruleHandledRate": 1,
+  "directionAccuracy": 1,
+  "p95Ms": 1,
+  "cases": [
+    {
+      "instruction": "もう少し赤っぽくして",
+      "current": "#1E3CD2",
+      "expected": "#4731AC",
+      "actual": "#4731AC",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "もっと赤っぽくして",
+      "current": "#1E3CD2",
+      "expected": "#7D237A",
+      "actual": "#7D237A",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "青みを少し足して",
+      "current": "#B44628",
+      "expected": "#94394F",
+      "actual": "#94394F",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "もう少し黄色寄りにして",
+      "current": "#50A046",
+      "expected": "#70B139",
+      "actual": "#70B139",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "少し暖色寄りにして",
+      "current": "#785AA0",
+      "expected": "#905B88",
+      "actual": "#905B88",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "もっと濃い色にして",
+      "current": "#826E64",
+      "expected": "#755D50",
+      "actual": "#755D50",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 1
+    },
+    {
+      "instruction": "少し明るくして",
+      "current": "#2850B4",
+      "expected": "#2D5ACA",
+      "actual": "#2D5ACA",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "もっと暗くして",
+      "current": "#B4783C",
+      "expected": "#5A3C1E",
+      "actual": "#5A3C1E",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 1
+    },
+    {
+      "instruction": "赤みを少し抑えて",
+      "current": "#DC5050",
+      "expected": "#B47070",
+      "actual": "#B47070",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "彩度を下げて",
+      "current": "#506496",
+      "expected": "#58678B",
+      "actual": "#58678B",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 1
+    },
+    {
+      "instruction": "赤を20%足して少し明るくして",
+      "current": "#2850B4",
+      "expected": "#5D48A1",
+      "actual": "#5D48A1",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    },
+    {
+      "instruction": "もう少し紫っぽくして",
+      "current": "#A06446",
+      "expected": "#A05267",
+      "actual": "#A05267",
+      "source": "rule-relative",
+      "ruleHandled": true,
+      "directionOk": true,
+      "elapsedMs": 0
+    }
+  ]
+}

@@ -1,0 +1,1641 @@
+{
+  "generatedAtUnixMs": 1784599861283,
+  "device": {
+    "manufacturer": "Sony",
+    "model": "XQ-FS54",
+    "sdk": 36
+  },
+  "model": "qwen3-0.6b",
+  "caseCount": 156,
+  "accuracy": 0.9743589743589743,
+  "minModeAccuracy": 0.9743589743589743,
+  "p95Ms": 1,
+  "categoryResults": {
+    "brand": {
+      "caseCount": 30,
+      "accuracy": 1
+    },
+    "food": {
+      "caseCount": 30,
+      "accuracy": 0.9333333333333333
+    },
+    "emotion": {
+      "caseCount": 30,
+      "accuracy": 1
+    },
+    "traditional": {
+      "caseCount": 30,
+      "accuracy": 1
+    },
+    "character": {
+      "caseCount": 30,
+      "accuracy": 1
+    },
+    "dark": {
+      "caseCount": 6,
+      "accuracy": 0.6666666666666666
+    }
+  },
+  "suiteResults": {
+    "development": {
+      "caseCount": 106,
+      "accuracy": 0.9811320754716981
+    },
+    "holdout": {
+      "caseCount": 50,
+      "accuracy": 0.96
+    }
+  },
+  "modeResults": {
+    "standalone": {
+      "caseCount": 78,
+      "accuracy": 0.9743589743589743,
+      "p95Ms": 2,
+      "ruleCaseCount": 75,
+      "ruleAccuracy": 1,
+      "ruleP95Ms": 1,
+      "llmCaseCount": 3,
+      "llmAccuracy": 0.3333333333333333,
+      "llmP95Ms": 333
+    },
+    "withCurrent": {
+      "caseCount": 78,
+      "accuracy": 0.9743589743589743,
+      "p95Ms": 1,
+      "ruleCaseCount": 75,
+      "ruleAccuracy": 1,
+      "ruleP95Ms": 1,
+      "llmCaseCount": 3,
+      "llmAccuracy": 0.3333333333333333,
+      "llmP95Ms": 326
+    }
+  },
+  "ruleCaseCount": 150,
+  "ruleAccuracy": 1,
+  "ruleP95Ms": 1,
+  "llmCaseCount": 6,
+  "llmAccuracy": 0.3333333333333333,
+  "llmP95Ms": 333,
+  "cases": [
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "LINEのブランドカラー",
+      "hex": "#06C755",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 2
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "YouTubeのブランドカラー",
+      "hex": "#FF0000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "旧Twitterのブランドカラー",
+      "hex": "#1DA1F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Xのブランドカラー",
+      "hex": "#000000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Discordのブランドカラー",
+      "hex": "#5865F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Instagramのブランドカラー",
+      "hex": "#C13584",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Facebookのブランドカラー",
+      "hex": "#1877F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Spotifyのブランドカラー",
+      "hex": "#1DB954",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "Nintendoのブランドカラー",
+      "hex": "#E60012",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "brand",
+      "text": "TikTokのブランドカラー",
+      "hex": "#25F4EE",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "熟したバナナ",
+      "hex": "#FFDC00",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "真っ赤ないちご",
+      "hex": "#FF0000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "濃い抹茶",
+      "hex": "#67A71C",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "ビターチョコレート",
+      "hex": "#502814",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "スパイスの効いたカレー",
+      "hex": "#C88C28",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "深煎りコーヒー",
+      "hex": "#3F2614",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "ブルーベリーの実",
+      "hex": "#463C82",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "サーモンの切り身",
+      "hex": "#FA8072",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "かぼちゃの果肉",
+      "hex": "#E67E14",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "food",
+      "text": "新鮮なミルク",
+      "hex": "#FAFAF0",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "抑えきれない怒り",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "深く沈む悲しみ",
+      "hex": "#3A4763",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "弾けるような喜び",
+      "hex": "#FFD040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "ほっとする安心感",
+      "hex": "#A0C080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "嫉妬で胸がざわつく",
+      "hex": "#408040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "背筋が凍る恐怖",
+      "hex": "#301050",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "あふれる愛情",
+      "hex": "#C05080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "ひとりぼっちの孤独",
+      "hex": "#506080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "古いアルバムへの郷愁",
+      "hex": "#C08040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "emotion",
+      "text": "胸が高鳴る興奮",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "山吹色",
+      "hex": "#F8B500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "瑠璃色",
+      "hex": "#1E50A2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "浅葱色",
+      "hex": "#00A3AF",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "萌黄色",
+      "hex": "#A8C97F",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "臙脂色",
+      "hex": "#B94047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "群青色",
+      "hex": "#4C6CB3",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "鴇色",
+      "hex": "#F4B3C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "鶯色",
+      "hex": "#928C36",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "柿渋色",
+      "hex": "#9F563A",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "traditional",
+      "text": "藍色",
+      "hex": "#165E83",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "ピカチュウの代表色",
+      "hex": "#FFD500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "ドラえもんの代表色",
+      "hex": "#009EDB",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "アンパンマンの代表色",
+      "hex": "#D92B2B",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "初音ミクの代表色",
+      "hex": "#00B7C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "マリオの代表色",
+      "hex": "#E52521",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "ルイージの代表色",
+      "hex": "#43B047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "カービィの代表色",
+      "hex": "#FFB6C1",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "ソニックの代表色",
+      "hex": "#0062BE",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "トトロの代表色",
+      "hex": "#646964",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "character",
+      "text": "ミニオンの代表色",
+      "hex": "#FFE036",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "LINEらしい色",
+      "hex": "#06C755",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "エックスのロゴ色",
+      "hex": "#000000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "ディスコードっぽい色",
+      "hex": "#5865F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "スポティファイの緑",
+      "hex": "#1DB954",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "任天堂ロゴの赤",
+      "hex": "#E60012",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "food",
+      "text": "バナナ色に光らせて",
+      "hex": "#FFDC00",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "food",
+      "text": "いちごジャムの色",
+      "hex": "#DC1E32",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "food",
+      "text": "抹茶ラテの色",
+      "hex": "#78B432",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "food",
+      "text": "ブルーベリージャム",
+      "hex": "#463C82",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "food",
+      "text": "パンプキンカラー",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (276ms [pf:130,g:143])",
+      "accepted": false,
+      "elapsedMs": 278
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "腹の底から込み上げる怒り",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "涙が止まらない喪失感",
+      "hex": "#506080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "心からうれしくて仕方ない",
+      "hex": "#FFD040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "穏やかで心がほどける",
+      "hex": "#A0C080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "嫉妬心に焼かれる",
+      "hex": "#408040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "やまぶきいろ",
+      "hex": "#F8B500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "るりいろ",
+      "hex": "#1E50A2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "あさぎいろ",
+      "hex": "#00A3AF",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "えんじいろ",
+      "hex": "#B94047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "ぐんじょういろ",
+      "hex": "#4C6CB3",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ピカチュウっぽい黄色",
+      "hex": "#FFD500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ドラえもんブルー",
+      "hex": "#009EDB",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ミク色にして",
+      "hex": "#00B7C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "character",
+      "text": "マリオカラー",
+      "hex": "#E52521",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "holdout",
+      "category": "character",
+      "text": "カービィピンク",
+      "hex": "#FFB6C1",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "dark",
+      "text": "月明かりのような青",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (286ms [pf:132,g:152])",
+      "accepted": false,
+      "elapsedMs": 287
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "dark",
+      "text": "ネオンブルー",
+      "hex": "#0AC9F5",
+      "source": "qwen3-0.6b (332ms [pf:189,g:140])",
+      "accepted": true,
+      "elapsedMs": 333
+    },
+    {
+      "mode": "standalone",
+      "suite": "development",
+      "category": "dark",
+      "text": "深い青",
+      "hex": "#000073",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "LINEのブランドカラー",
+      "hex": "#06C755",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "YouTubeのブランドカラー",
+      "hex": "#FF0000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "旧Twitterのブランドカラー",
+      "hex": "#1DA1F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Xのブランドカラー",
+      "hex": "#000000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Discordのブランドカラー",
+      "hex": "#5865F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Instagramのブランドカラー",
+      "hex": "#C13584",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Facebookのブランドカラー",
+      "hex": "#1877F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Spotifyのブランドカラー",
+      "hex": "#1DB954",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "Nintendoのブランドカラー",
+      "hex": "#E60012",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "brand",
+      "text": "TikTokのブランドカラー",
+      "hex": "#25F4EE",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "熟したバナナ",
+      "hex": "#FFDC00",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "真っ赤ないちご",
+      "hex": "#FF0000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "濃い抹茶",
+      "hex": "#67A71C",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "ビターチョコレート",
+      "hex": "#502814",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "スパイスの効いたカレー",
+      "hex": "#C88C28",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "深煎りコーヒー",
+      "hex": "#3F2614",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "ブルーベリーの実",
+      "hex": "#463C82",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "サーモンの切り身",
+      "hex": "#FA8072",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "かぼちゃの果肉",
+      "hex": "#E67E14",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "food",
+      "text": "新鮮なミルク",
+      "hex": "#FAFAF0",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "抑えきれない怒り",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "深く沈む悲しみ",
+      "hex": "#3A4763",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "弾けるような喜び",
+      "hex": "#FFD040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "ほっとする安心感",
+      "hex": "#A0C080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "嫉妬で胸がざわつく",
+      "hex": "#408040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "背筋が凍る恐怖",
+      "hex": "#301050",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "あふれる愛情",
+      "hex": "#C05080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "ひとりぼっちの孤独",
+      "hex": "#506080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "古いアルバムへの郷愁",
+      "hex": "#C08040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "emotion",
+      "text": "胸が高鳴る興奮",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "山吹色",
+      "hex": "#F8B500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "瑠璃色",
+      "hex": "#1E50A2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "浅葱色",
+      "hex": "#00A3AF",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "萌黄色",
+      "hex": "#A8C97F",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "臙脂色",
+      "hex": "#B94047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "群青色",
+      "hex": "#4C6CB3",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "鴇色",
+      "hex": "#F4B3C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "鶯色",
+      "hex": "#928C36",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "柿渋色",
+      "hex": "#9F563A",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "traditional",
+      "text": "藍色",
+      "hex": "#165E83",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "ピカチュウの代表色",
+      "hex": "#FFD500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "ドラえもんの代表色",
+      "hex": "#009EDB",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "アンパンマンの代表色",
+      "hex": "#D92B2B",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "初音ミクの代表色",
+      "hex": "#00B7C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "マリオの代表色",
+      "hex": "#E52521",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "ルイージの代表色",
+      "hex": "#43B047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "カービィの代表色",
+      "hex": "#FFB6C1",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "ソニックの代表色",
+      "hex": "#0062BE",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "トトロの代表色",
+      "hex": "#646964",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "character",
+      "text": "ミニオンの代表色",
+      "hex": "#FFE036",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "LINEらしい色",
+      "hex": "#06C755",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "エックスのロゴ色",
+      "hex": "#000000",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "ディスコードっぽい色",
+      "hex": "#5865F2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "スポティファイの緑",
+      "hex": "#1DB954",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "brand",
+      "text": "任天堂ロゴの赤",
+      "hex": "#E60012",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "food",
+      "text": "バナナ色に光らせて",
+      "hex": "#FFDC00",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "food",
+      "text": "いちごジャムの色",
+      "hex": "#DC1E32",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "food",
+      "text": "抹茶ラテの色",
+      "hex": "#78B432",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "food",
+      "text": "ブルーベリージャム",
+      "hex": "#463C82",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "food",
+      "text": "パンプキンカラー",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (326ms [pf:180,g:143])",
+      "accepted": false,
+      "elapsedMs": 326
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "腹の底から込み上げる怒り",
+      "hex": "#FF4020",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "涙が止まらない喪失感",
+      "hex": "#506080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "心からうれしくて仕方ない",
+      "hex": "#FFD040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "穏やかで心がほどける",
+      "hex": "#A0C080",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "emotion",
+      "text": "嫉妬心に焼かれる",
+      "hex": "#408040",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "やまぶきいろ",
+      "hex": "#F8B500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "るりいろ",
+      "hex": "#1E50A2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "あさぎいろ",
+      "hex": "#00A3AF",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "えんじいろ",
+      "hex": "#B94047",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "traditional",
+      "text": "ぐんじょういろ",
+      "hex": "#4C6CB3",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ピカチュウっぽい黄色",
+      "hex": "#FFD500",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ドラえもんブルー",
+      "hex": "#009EDB",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "character",
+      "text": "ミク色にして",
+      "hex": "#00B7C2",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "character",
+      "text": "マリオカラー",
+      "hex": "#E52521",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "holdout",
+      "category": "character",
+      "text": "カービィピンク",
+      "hex": "#FFB6C1",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 1
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "dark",
+      "text": "月明かりのような青",
+      "hex": "#000000",
+      "source": "qwen3-0.6b (292ms [pf:139,g:150])",
+      "accepted": false,
+      "elapsedMs": 292
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "dark",
+      "text": "ネオンブルー",
+      "hex": "#0AC9F5",
+      "source": "qwen3-0.6b (290ms [pf:142,g:145])",
+      "accepted": true,
+      "elapsedMs": 297
+    },
+    {
+      "mode": "withCurrent",
+      "suite": "development",
+      "category": "dark",
+      "text": "深い青",
+      "hex": "#000073",
+      "source": "rule",
+      "accepted": true,
+      "elapsedMs": 0
+    }
+  ]
+}

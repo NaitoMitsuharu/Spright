@@ -30,12 +30,20 @@ set(GGML_METAL           OFF CACHE BOOL "" FORCE)  # no Metal on Android
 set(GGML_OPENMP          OFF CACHE BOOL "" FORCE)  # pthreads only
 set(BUILD_SHARED_LIBS    OFF CACHE BOOL "" FORCE)
 
+# Android's Debug variant otherwise builds llama.cpp without optimization,
+# making a sub-billion-parameter model several times slower on device.
+if(ANDROID)
+    string(APPEND CMAKE_C_FLAGS_DEBUG " -O3 -DNDEBUG")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -O3 -DNDEBUG")
+endif()
+
 # Enable ARM dot-product + FP16 instructions on aarch64 Android.
 # DOTPROD (sdot/udot) is supported on Cortex-A76/A55 and all Snapdragon 7xx/8xx
 # from ~2019 onwards.  This typically gives a 5-10x throughput improvement
 # for Q4/Q8 quantised models compared to plain armv8-a.
 if(ANDROID AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-    set(GGML_CPU_ARM_ARCH  "armv8-a+dotprod+fp16" CACHE STRING "" FORCE)
+    # Xperia 1 VII / Snapdragon 8 Elite exposes dotprod, FP16 and i8mm.
+    set(GGML_CPU_ARM_ARCH  "armv8.6-a+dotprod+fp16+i8mm" CACHE STRING "" FORCE)
     # KleidiAI: Arm’s optimized compute kernels bundled with llama.cpp.
     # Typically gives an additional 2-4x matmul speedup on Cortex-A7xx/X-series.
     set(GGML_CPU_KLEIDIAI  ON  CACHE BOOL   "" FORCE)

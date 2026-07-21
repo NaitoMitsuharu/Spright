@@ -9,13 +9,24 @@ object NativeQwenBridge {
         return nativeWarmupModel(modelPath)
     }
 
-    fun inferColorJson(modelPath: String, prompt: String): String? {
+    fun inferColorHex(modelPath: String, prompt: String): String? {
         if (!isAvailable) {
             return null
         }
-        return nativeInferColorJson(modelPath, prompt)
+        return nativeInferColorHex(modelPath, prompt)
+    }
+
+    fun inferRelativeCommand(modelPath: String, instruction: String): String? {
+        if (!isAvailable) {
+            return null
+        }
+        return nativeInferColorHex(
+            modelPath,
+            "Relative control classification: $instruction\n" +
+                "Output TARGET,L,S,V; only. /no_think",
+        )
     }
 
     private external fun nativeWarmupModel(modelPath: String): Boolean
-    private external fun nativeInferColorJson(modelPath: String, prompt: String): String?
+    private external fun nativeInferColorHex(modelPath: String, prompt: String): String?
 }

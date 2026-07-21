@@ -1,0 +1,89 @@
+{
+  "device": {
+    "manufacturer": "Sony",
+    "model": "XQ-FS54",
+    "soc": "SM8750",
+    "android": 16,
+    "pageSizeBytes": 4096
+  },
+  "date": "2026-07-18",
+  "caseCount": 32,
+  "repeats": 3,
+  "criteria": {
+    "hexFormatRate": 1.0,
+    "semanticRateMinimum": 0.9,
+    "p95MsMaximum": 3000
+  },
+  "winner": "qwen3-0.6b",
+  "diversificationValidation": {
+    "implementation": "deterministic HSV offsets derived from the utterance, with separate cached contexts for absolute and relative inference",
+    "caseCount": 32,
+    "repeats": 3,
+    "totalInferences": 96,
+    "hexFormatRate": 1.0,
+    "semanticRate": 1.0,
+    "p95Ms": 667,
+    "maxMs": 720,
+    "uniqueColors": 32,
+    "stableCases": 32
+  },
+  "relativeControlValidation": {
+    "implementation": "local LLM TARGET,L,S,V operation classification in no-think mode, with vocabulary guard and safety fallback",
+    "model": "qwen3-0.6b",
+    "caseCount": 12,
+    "llmAcceptanceRate": 0.6666666666666666,
+    "directionAccuracyIncludingFallback": 1.0,
+    "p95Ms": 445,
+    "comparison": {
+      "model": "qwen3.5-0.8b",
+      "llmAcceptanceRate": 0.75,
+      "directionAccuracyIncludingFallback": 1.0,
+      "p95Ms": 1877,
+      "selected": false,
+      "reason": "exceeded the 1000 ms relative-inference target"
+    }
+  },
+  "broadApplicationValidation": {
+    "implementation": "canonical reference colors for named entities and explicit emotions; local LLM for unknown and abstract expressions",
+    "categories": [
+      "brand",
+      "food",
+      "emotion",
+      "traditional",
+      "character"
+    ],
+    "caseCount": 75,
+    "casesPerCategory": 15,
+    "accuracyBeforeFirst50": 0.38,
+    "accuracy": 1.0,
+    "developmentCaseCount": 50,
+    "developmentAccuracy": 1.0,
+    "holdoutCaseCount": 25,
+    "holdoutAccuracy": 1.0,
+    "ruleCaseCount": 74,
+    "ruleAccuracy": 1.0,
+    "ruleP95Ms": 1,
+    "llmCaseCount": 1,
+    "llmAccuracy": 1.0,
+    "llmP95Ms": 351,
+    "note": "LLM quality is evaluated independently by diversificationValidation using 32 rule-bypassing abstract inputs repeated three times"
+  },
+  "models": [
+    {
+      "id": "qwen3-0.6b",
+      "fileName": "Qwen3-0.6B-Q4_K_M.gguf",
+      "hexFormatRate": 1.0,
+      "semanticRate": 1.0,
+      "p95Ms": 643,
+      "passes": true
+    },
+    {
+      "id": "qwen3.5-0.8b",
+      "fileName": "Qwen3.5-0.8B-Q4_0.gguf",
+      "hexFormatRate": 1.0,
+      "semanticRate": 0.6875,
+      "p95Ms": 3699,
+      "passes": false
+    }
+  ]
+}
