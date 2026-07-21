@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
-project("ble1507_qwen" CXX)
+project("ble1507_qwen" C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -74,4 +74,37 @@ target_link_libraries(ble1507_qwen
 target_compile_options(ble1507_qwen PRIVATE
     -fvisibility=hidden
     -O2
+)
+
+# InertialMotionLib2 is vendored directly in Spright so the app does not
+# depend on the complete sprbox-SDK Gradle project. The JNI class keeps its
+# original JVM package because that package is encoded in the native symbols.
+set(INERTIAL_MOTION_LIB2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/inertialmotionlib2")
+set(INERTIAL_MOTION_LIB2_PREBUILT
+    "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libinertialmotionlib2.so")
+
+if(NOT EXISTS "${INERTIAL_MOTION_LIB2_PREBUILT}")
+    message(FATAL_ERROR
+        "InertialMotionLib2 prebuilt library is missing for ABI ${ANDROID_ABI}: "
+        "${INERTIAL_MOTION_LIB2_PREBUILT}")
+endif()
+
+add_library(inertialmotionlib2 SHARED IMPORTED)
+set_target_properties(inertialmotionlib2 PROPERTIES
+    IMPORTED_LOCATION "${INERTIAL_MOTION_LIB2_PREBUILT}"
+    INTERFACE_INCLUDE_DIRECTORIES "${INERTIAL_MOTION_LIB2_DIR}/include"
+)
+
+add_library(inertialmotionlib2_jni SHARED
+    "${INERTIAL_MOTION_LIB2_DIR}/inertialmotionlib2_jni.c")
+
+target_include_directories(inertialmotionlib2_jni PRIVATE
+    "${INERTIAL_MOTION_LIB2_DIR}/include")
+
+target_link_libraries(inertialmotionlib2_jni
+    PRIVATE
+    inertialmotionlib2
+    android
+    log
+    m
 )

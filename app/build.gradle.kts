@@ -202,8 +202,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("io.github.sceneview:sceneview:4.22.0")
-    implementation(project(":sprboxlib-std"))
-    implementation(project(":sprboxlib-imuadv"))
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("junit:junit:4.13.2")
