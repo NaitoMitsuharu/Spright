@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.KeyboardOptions
@@ -122,6 +123,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Composable
 fun SprightExhibitionScreen(
@@ -178,6 +180,9 @@ fun SprightExhibitionScreen(
     var emitterHintShown by remember { mutableStateOf(false) }
     var emitterHintVisible by remember { mutableStateOf(false) }
     var showQuickColors by remember { mutableStateOf(false) }
+    var quickColorRevealProgress by remember { mutableFloatStateOf(0f) }
+    var quickColorRevealStartAngle by remember { mutableFloatStateOf(-90f) }
+    var quickColorDismissProgress by remember { mutableFloatStateOf(0f) }
     val emitterHintAlpha by animateFloatAsState(
         targetValue = if (emitterHintVisible) 0.6f else 0f,
         animationSpec = tween(900),
@@ -192,6 +197,12 @@ fun SprightExhibitionScreen(
                 delay(1_200)
                 emitterHintVisible = false
             }
+        }
+    }
+    LaunchedEffect(showQuickColors, quickColorDismissProgress) {
+        if (!showQuickColors && quickColorDismissProgress != 0f) {
+            delay(280)
+            quickColorDismissProgress = 0f
         }
     }
     MaterialTheme {
@@ -281,17 +292,33 @@ fun SprightExhibitionScreen(
                             attitude = attitude,
                             attitudeReference = attitudeReference,
                             attitudeEnabled = imuPoseHealthy,
-                            onEmitterTap = { showColorPicker = true },
+                            onEmitterTap = {
+                                if (!showQuickColors) showColorPicker = true
+                            },
                             modifier = Modifier.fillMaxSize(),
                         )
                         QuickColorGestureLayer(
                             expanded = showQuickColors,
-                            onExpandedChanged = { showQuickColors = it },
+                            onExpandedChanged = { expanded ->
+                                showQuickColors = expanded
+                                if (expanded) {
+                                    quickColorRevealProgress = 1f
+                                    quickColorDismissProgress = 0f
+                                } else {
+                                    quickColorRevealProgress = 0f
+                                }
+                            },
+                            onRevealProgressChanged = { progress -> quickColorRevealProgress = progress },
+                            onRevealStartAngleChanged = { angle -> quickColorRevealStartAngle = angle },
+                            onDismissProgressChanged = { progress -> quickColorDismissProgress = progress },
                             onTap = { showColorPicker = true },
                             modifier = Modifier.fillMaxSize(),
                         )
                         QuickColorOrbit(
                             expanded = showQuickColors,
+                            revealProgress = quickColorRevealProgress,
+                            revealStartAngleDegrees = quickColorRevealStartAngle,
+                            dismissProgress = quickColorDismissProgress,
                             onColorSelected = { color ->
                                 onApplyColor(color)
                             },
@@ -616,30 +643,68 @@ internal fun PenlightHero(
 private fun QuickColorGestureLayer(
     expanded: Boolean,
     onExpandedChanged: (Boolean) -> Unit,
+    onRevealProgressChanged: (Float) -> Unit,
+    onRevealStartAngleChanged: (Float) -> Unit,
+    onDismissProgressChanged: (Float) -> Unit,
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
             .pointerInput(Unit) {
-                detectTapGestures {
-                    if (!expanded) onTap()
+                detectTapGestures { tapOffset ->
+                    if (!expanded && isPenlightEmitterTapTarget(tapOffset, size)) {
+                        onTap()
+                    }
                 }
             }
             .pointerInput(expanded) {
                 var points = mutableListOf<Offset>()
                 detectDragGestures(
-                    onDragStart = { start -> points = mutableListOf(start) },
-                    onDrag = { change, _ -> points += change.position },
-                    onDragCancel = { points.clear() },
+                    onDragStart = { start ->
+                        points = mutableListOf(start)
+                        if (expanded) {
+                            onDismissProgressChanged(0f)
+                        } else {
+                            onRevealProgressChanged(0f)
+                            onRevealStartAngleChanged(angleFromCenter(start, size))
+                        }
+                    },
+                    onDrag = { change, _ ->
+                        points += change.position
+                        if (expanded) {
+                            onDismissProgressChanged(verticalQuickColorDismissProgress(points, size))
+                        } else {
+                            onRevealStartAngleChanged(angleFromCenter(points.first(), size))
+                            onRevealProgressChanged(circularQuickColorRevealProgress(points, size))
+                        }
+                    },
+                    onDragCancel = {
+                        if (expanded) {
+                            onDismissProgressChanged(0f)
+                        } else {
+                            onRevealProgressChanged(0f)
+                        }
+                        points.clear()
+                    },
                     onDragEnd = {
                         val currentSize = size
                         when {
-                            expanded && isVerticalQuickColorDismissGesture(points, currentSize) ->
+                            expanded && isVerticalQuickColorDismissGesture(points, currentSize) -> {
+                                onDismissProgressChanged(verticalQuickColorDismissProgress(points, currentSize).let {
+                                    if (it < 0f) -1f else 1f
+                                })
                                 onExpandedChanged(false)
+                            }
 
-                            !expanded && isCircularQuickColorRevealGesture(points, currentSize) ->
+                            !expanded && isCircularQuickColorRevealGesture(points, currentSize) -> {
+                                onRevealProgressChanged(1f)
                                 onExpandedChanged(true)
+                            }
+
+                            expanded -> onDismissProgressChanged(0f)
+
+                            else -> onRevealProgressChanged(0f)
                         }
                         points.clear()
                     },
@@ -648,18 +713,46 @@ private fun QuickColorGestureLayer(
     )
 }
 
+private fun isPenlightEmitterTapTarget(point: Offset, size: IntSize): Boolean {
+    if (size.width <= 0 || size.height <= 0) return false
+    val minDimension = minOf(size.width, size.height).toFloat()
+    val centerX = size.width / 2f
+    val centerY = size.height / 2f - minDimension * 0.16f
+    val halfWidth = minDimension * 0.065f
+    val halfHeight = minDimension * 0.24f
+    val dx = abs(point.x - centerX)
+    val dy = abs(point.y - centerY)
+    if (dy <= halfHeight - halfWidth) return dx <= halfWidth
+    val capDy = dy - (halfHeight - halfWidth)
+    return sqrt(dx * dx + capDy * capDy) <= halfWidth
+}
+
+private fun angleFromCenter(point: Offset, size: IntSize): Float {
+    if (size.width <= 0 || size.height <= 0) return -90f
+    val center = Offset(size.width / 2f, size.height / 2f)
+    return atan2Degrees(point.y - center.y, point.x - center.x)
+}
+
 @Composable
 private fun QuickColorOrbit(
     expanded: Boolean,
+    revealProgress: Float,
+    revealStartAngleDegrees: Float,
+    dismissProgress: Float,
     onColorSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val progress by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0f,
-        animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
-        label = "quickColorOrbit",
+    val closeProgress by animateFloatAsState(
+        targetValue = if (!expanded && dismissProgress != 0f) 1f else 0f,
+        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+        label = "quickColorCloseProgress",
     )
-    if (progress <= 0.01f && !expanded) return
+    val progress = when {
+        expanded -> 1f
+        dismissProgress != 0f -> 1f - closeProgress
+        else -> revealProgress
+    }.coerceIn(0f, 1f)
+    if (progress <= 0.01f && !expanded && dismissProgress == 0f) return
     BoxWithConstraints(modifier = modifier) {
         val colors = remember {
             listOf(
@@ -667,27 +760,36 @@ private fun QuickColorOrbit(
                 AndroidColor.GREEN,
                 AndroidColor.BLUE,
                 AndroidColor.YELLOW,
-                AndroidColor.rgb(170, 80, 255),
+                AndroidColor.MAGENTA,
                 AndroidColor.CYAN,
             )
         }
         val buttonSize = 76.dp
         val centerX = maxWidth / 2f
         val centerY = maxHeight / 2f
-        val radius = (minOf(maxWidth.value, maxHeight.value) * 0.42f).dp * progress
+        val radius = (minOf(maxWidth.value, maxHeight.value) * 0.42f).dp
+        val dismissOffsetY = maxHeight * dismissProgress * if (expanded) 0.32f else (0.12f + closeProgress * 0.68f)
         colors.forEachIndexed { index, color ->
             val angle = -PI / 2.0 + index * (2.0 * PI / colors.size)
+            val angleDegrees = Math.toDegrees(angle).toFloat()
+            val revealOrder = positiveAngleDelta(revealStartAngleDegrees, angleDegrees) / 360f
+            val itemProgress = when {
+                expanded -> (1f - abs(dismissProgress) * 0.22f).coerceIn(0f, 1f)
+                dismissProgress != 0f -> progress
+                else -> ((progress - revealOrder) * colors.size).coerceIn(0f, 1f)
+            }
             QuickColorButton(
                 color = color,
-                enabled = expanded && progress > 0.92f,
+                enabled = expanded && itemProgress > 0.92f && abs(dismissProgress) < 0.18f,
                 onClick = { onColorSelected(color) },
                 modifier = Modifier
                     .offset(
                         x = centerX + radius * cos(angle).toFloat() - buttonSize / 2f,
-                        y = centerY + radius * sin(angle).toFloat() - buttonSize / 2f,
+                        y = centerY + radius * sin(angle).toFloat() + dismissOffsetY - buttonSize / 2f,
                     )
                     .size(buttonSize)
-                    .alpha(progress),
+                    .scale(0.72f + itemProgress * 0.28f)
+                    .alpha(itemProgress),
             )
         }
     }
@@ -703,7 +805,6 @@ private fun QuickColorButton(
     Box(
         modifier = modifier
             .background(Color(color), CircleShape)
-            .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape)
             .pointerInput(enabled) {
                 detectTapGestures {
                     if (enabled) onClick()
@@ -732,12 +833,41 @@ private fun isCircularQuickColorRevealGesture(points: List<Offset>, size: IntSiz
     return angularTravel > 290f && pathLength > averageRadius * 4.1f
 }
 
+private fun circularQuickColorRevealProgress(points: List<Offset>, size: IntSize): Float {
+    if (points.size < 3 || size.width <= 0 || size.height <= 0) return 0f
+    val center = Offset(size.width / 2f, size.height / 2f)
+    val minDimension = minOf(size.width, size.height).toFloat()
+    val vectors = points.map { it - center }
+    val radii = vectors.map { it.getDistance() }
+    val averageRadius = radii.average().toFloat()
+    if (averageRadius !in (minDimension * 0.12f)..(minDimension * 0.56f)) return 0f
+    val angularTravel = vectors
+        .zipWithNext()
+        .sumOf { (from, to) ->
+            abs(shortestAngleDelta(atan2Degrees(from.y, from.x), atan2Degrees(to.y, to.x))).toDouble()
+        }
+        .toFloat()
+    return (angularTravel / 310f).coerceIn(0f, 1f)
+}
+
 private fun isVerticalQuickColorDismissGesture(points: List<Offset>, size: IntSize): Boolean {
     if (points.size < 4 || size.height <= 0) return false
     val start = points.first()
     val end = points.last()
     val delta = end - start
     return abs(delta.y) > size.height * 0.30f && abs(delta.y) > abs(delta.x) * 1.8f
+}
+
+private fun verticalQuickColorDismissProgress(points: List<Offset>, size: IntSize): Float {
+    if (points.size < 2 || size.height <= 0) return 0f
+    val delta = points.last() - points.first()
+    if (abs(delta.y) <= abs(delta.x) * 1.2f) return 0f
+    return (delta.y / (size.height * 0.30f)).coerceIn(-1f, 1f)
+}
+
+private fun positiveAngleDelta(from: Float, to: Float): Float {
+    val delta = (to - from) % 360f
+    return if (delta < 0f) delta + 360f else delta
 }
 
 private fun atan2Degrees(y: Float, x: Float): Float =

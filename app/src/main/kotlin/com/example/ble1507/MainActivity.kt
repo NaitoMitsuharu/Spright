@@ -258,9 +258,14 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         imuEstimator = ImuNativeAttitudeEstimator()
         attitudeTipSpeedEstimator = AttitudeTipSpeedEstimator()
         val exhibitionPreferences = getSharedPreferences(EXHIBITION_PREFS, MODE_PRIVATE)
-        touchDesignerHost = exhibitionPreferences
+        val savedTouchDesignerHost = exhibitionPreferences
             .getString(PREF_TOUCHDESIGNER_HOST, DEFAULT_TOUCHDESIGNER_HOST)
             ?: DEFAULT_TOUCHDESIGNER_HOST
+        touchDesignerHost = if (savedTouchDesignerHost == OLD_DEFAULT_TOUCHDESIGNER_HOST) {
+            DEFAULT_TOUCHDESIGNER_HOST
+        } else {
+            savedTouchDesignerHost
+        }
         touchDesignerPort = exhibitionPreferences
             .getInt(PREF_TOUCHDESIGNER_PORT, DEFAULT_TOUCHDESIGNER_PORT)
             .toString()
@@ -426,6 +431,9 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             return
         }
         val port = touchDesignerPort.toIntOrNull() ?: 0
+        if (syncUiState != SyncUiState.Synced) {
+            touchDesignerClient.updateColorOnly(selectedColor)
+        }
         touchDesignerClient.connect(touchDesignerHost, port)
     }
 
@@ -1697,7 +1705,11 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         // The screen and GLB only commit colors that the penlight acknowledged.
         selectedColor = pending.color
         latestTouchDesignerColor = selectedColor
-        touchDesignerClient.updateColor(selectedColor)
+        if (syncUiState == SyncUiState.Synced) {
+            touchDesignerClient.updateColor(selectedColor)
+        } else {
+            touchDesignerClient.updateColorOnly(selectedColor)
+        }
         val stepCount = operation.stepCount
         if (pending.step >= stepCount) {
             operation.nextStep = stepCount + 1
@@ -2504,7 +2516,8 @@ private const val PREF_MAINTAIN_BLE = "maintain_ble_connection"
 private const val PREF_OFFLINE_SPEECH_PACK_STATE = "offline_speech_pack_state"
 private const val PREF_TOUCHDESIGNER_HOST = "touchdesigner_host"
 private const val PREF_TOUCHDESIGNER_PORT = "touchdesigner_port"
-private const val DEFAULT_TOUCHDESIGNER_HOST = "192.168.1.100"
+private const val DEFAULT_TOUCHDESIGNER_HOST = "192.168.2.100"
+private const val OLD_DEFAULT_TOUCHDESIGNER_HOST = "192.168.1.100"
 private const val DEFAULT_TOUCHDESIGNER_PORT = 12345
 private const val SPEECH_PACK_STATE_NONE = "none"
 private const val SPEECH_PACK_STATE_REQUESTED = "requested"

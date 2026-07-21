@@ -181,6 +181,21 @@ class TouchDesignerTcpClient(
         if (!closed) latestColor.set(color)
     }
 
+    fun updateColorOnly(color: Int) {
+        if (closed) return
+        latestColor.set(color)
+        latestMotionFrame.set(
+            SequencedMotionFrame(
+                motionSequence.incrementAndGet(),
+                TouchDesignerMotionFrame(
+                    attitude = AttitudeEstimate(0f, 0f, 0f),
+                    speed = 0f,
+                    color = color,
+                ),
+            ),
+        )
+    }
+
     private fun sendLatestMotionFrame() {
         val snapshot = latestMotionFrame.get() ?: return
         if (snapshot.sequence == lastSentMotionSequence) return

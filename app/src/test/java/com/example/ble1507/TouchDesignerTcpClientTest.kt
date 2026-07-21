@@ -127,4 +127,53 @@ class TouchDesignerTcpClientTest {
             }
         }
     }
+
+    @Test
+    fun tcpClientSendsColorOnlyAsZeroMotionFrame() {
+        ServerSocket(0).use { server ->
+            val lines = LinkedBlockingQueue<String>()
+            val serverFinished = CountDownLatch(1)
+            val serverThread = Thread {
+                runCatching {
+                    server.accept().use { socket ->
+                        val reader = BufferedReader(
+                            InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8),
+                        )
+                        while (!Thread.currentThread().isInterrupted) {
+                            val line = reader.readLine() ?: break
+                            lines.offer(line)
+                        }
+                    }
+                }
+                serverFinished.countDown()
+            }.apply {
+                name = "touchdesigner-color-only-test-server"
+                start()
+            }
+            val connected = CountDownLatch(1)
+            val client = TouchDesignerTcpClient { state ->
+                if (state.status == TouchDesignerConnectionStatus.Connected) connected.countDown()
+            }
+            try {
+                client.updateColorOnly(0xFF40C020.toInt())
+                client.connect("127.0.0.1", server.localPort)
+                assertTrue("TCP client did not connect", connected.await(2L, TimeUnit.SECONDS))
+
+                val received = mutableListOf<String>()
+                val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2L)
+                while (System.nanoTime() < deadline && received.none { it.contains("send_imu_values") }) {
+                    lines.poll(100L, TimeUnit.MILLISECONDS)?.let(received::add)
+                }
+
+                assertTrue(received.any {
+                    it.startsWith("{\"cmd\":\"send_imu_values\",\"timestamp\":") &&
+                        it.endsWith("\"data\":{\"imu_values\":\"0.000000,0.000000,0.000000,0.000000,#40C020\"}}")
+                })
+            } finally {
+                client.close()
+                serverThread.interrupt()
+                serverFinished.await(1L, TimeUnit.SECONDS)
+            }
+        }
+    }
 }
