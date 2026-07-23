@@ -155,6 +155,7 @@ fun SprightExhibitionScreen(
     attitudeReference: AttitudeEstimate,
     imuText: String,
     imuLogPath: String,
+    configuredImuRateHz: Int,
     onBleToggle: () -> Unit,
     onSync: () -> Unit,
     onConfirmCalibration: () -> Unit,
@@ -165,6 +166,7 @@ fun SprightExhibitionScreen(
     onTouchDesignerPortChanged: (String) -> Unit,
     onTouchDesignerConnectionTest: () -> Unit,
     onTouchDesignerDisconnect: () -> Unit,
+    onImuRateChanged: (Int) -> Unit,
     onApplyColor: (Int) -> Unit,
     onVoice: () -> Unit,
     onCancelVoice: () -> Unit,
@@ -404,6 +406,8 @@ fun SprightExhibitionScreen(
                 onResetDisplayedAttitude()
                 showGradientSettings = false
             },
+            configuredImuRateHz = configuredImuRateHz,
+            onImuRateChanged = onImuRateChanged,
             touchDesignerHost = touchDesignerHost,
             touchDesignerPort = touchDesignerPort,
             touchDesignerState = touchDesignerState,
@@ -1050,6 +1054,8 @@ internal fun SettingsPopup(
     onDurationChanged: (Float) -> Unit,
     poseResetEnabled: Boolean,
     onResetDisplayedAttitude: () -> Unit,
+    configuredImuRateHz: Int,
+    onImuRateChanged: (Int) -> Unit,
     touchDesignerHost: String,
     touchDesignerPort: String,
     touchDesignerState: TouchDesignerConnectionState,
@@ -1111,6 +1117,35 @@ internal fun SettingsPopup(
                         color = Color(0xFF7F8EA4),
                         fontSize = 9.sp,
                     )
+                }
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "IMU RATE",
+                    color = Color(0xFF92A4BC),
+                    fontSize = 8.sp,
+                    letterSpacing = 1.2.sp,
+                    fontFamily = FontFamily.Monospace,
+                )
+                Spacer(Modifier.height(7.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf(60, 120, 240).forEach { rateHz ->
+                        val selected = configuredImuRateHz == rateHz
+                        Button(
+                            onClick = { onImuRateChanged(rateHz) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (selected) Color(0xFF4ADEDE).copy(alpha = 0.22f) else Color.White.copy(alpha = 0.08f),
+                                contentColor = if (selected) Color(0xFFDAF9FF) else Color(0xFFD9E3EF),
+                            ),
+                            shape = RoundedCornerShape(9.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.weight(1f).height(34.dp),
+                        ) {
+                            Text(rateHz.toString() + "Hz", fontSize = 10.sp)
+                        }
+                    }
                 }
                 Spacer(Modifier.height(10.dp))
                 Text(

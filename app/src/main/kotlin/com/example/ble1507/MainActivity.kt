@@ -209,6 +209,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
     private var imuRateWindowStartedAtMs = 0L
     private var imuSamplesInRateWindow = 0
     private var imuSampleRateHz = 0f
+    private var configuredImuRateHz by mutableIntStateOf(DEFAULT_IMU_RATE_HZ)
     @Volatile
     private var lastValidImuEstimateAtMs = 0L
     private val calibrationSamples = mutableListOf<ImuPacket>()
@@ -269,6 +270,8 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         touchDesignerPort = exhibitionPreferences
             .getInt(PREF_TOUCHDESIGNER_PORT, DEFAULT_TOUCHDESIGNER_PORT)
             .toString()
+        val savedImuRateHz = exhibitionPreferences.getInt(PREF_IMU_RATE_HZ, DEFAULT_IMU_RATE_HZ)
+        configuredImuRateHz = if (savedImuRateHz in SUPPORTED_IMU_RATE_HZ) savedImuRateHz else DEFAULT_IMU_RATE_HZ
         touchDesignerClient = TouchDesignerTcpClient { state ->
             runOnUiThread { touchDesignerState = state }
         }
@@ -323,6 +326,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 attitudeReference = sceneAttitudeReference,
                 imuText = imuText,
                 imuLogPath = imuLogPath,
+                  configuredImuRateHz = configuredImuRateHz,
                 onBleToggle = ::toggleBleConnection,
                 onSync = ::requestImuSync,
                 onConfirmCalibration = ::beginStationaryCalibration,
@@ -335,6 +339,7 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
                 onTouchDesignerPortChanged = ::updateTouchDesignerPort,
                 onTouchDesignerConnectionTest = ::runTouchDesignerConnectionTest,
                 onTouchDesignerDisconnect = ::disconnectTouchDesigner,
+                  onImuRateChanged = ::updateImuRate,
                 onApplyColor = { color -> sendColor(color, gradientDurationSeconds) },
                 onVoice = ::startVoiceInput,
                 onCancelVoice = ::cancelVoiceInput,
@@ -421,6 +426,50 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             if (value in 1..65535) {
                 getSharedPreferences(EXHIBITION_PREFS, MODE_PRIVATE).edit {
                     putInt(PREF_TOUCHDESIGNER_PORT, value)
+                }
+            }
+        }
+    }
+
+    private fun updateImuRate(rateHz: Int) {
+        if (rateHz !in SUPPORTED_IMU_RATE_HZ) {
+            statusText = "Unsupported IMU rate: " + rateHz + "Hz"
+            return
+        }
+
+        if (configuredImuRateHz == rateHz) {
+            return
+        }
+
+        configuredImuRateHz = rateHz
+        getSharedPreferences(EXHIBITION_PREFS, MODE_PRIVATE).edit {
+            putInt(PREF_IMU_RATE_HZ, rateHz)
+        }
+
+        if (!imuRunning) {
+            statusText = "IMU rate set to " + rateHz + "Hz"
+            return
+        }
+
+        imuPoseHealthy = false
+        statusText = "IMUレートを" + rateHz + "Hzへ適用中..."
+        if (!restartRemoteImuStream(rateHz)) {
+            statusText = "IMUレート変更コマンドを送信できませんでした"
+            return
+        }
+
+        executeImu {
+            imuEstimator.stop()
+            attitudeTipSpeedEstimator.reset()
+            val started = imuEstimator.start(rateHz.toFloat())
+            imuEstimatorStarted = started
+            runOnUiThread {
+                imuRunning = started
+                imuCalibrating = false
+                statusText = if (started) {
+                    "IMU rate changed to " + rateHz + "Hz"
+                } else {
+                    "IMU restart failed"
                 }
             }
         }
@@ -695,22 +744,22 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             return
         }
         shouldMaintainImuStream = true
-        if (!restartRemoteImuStream()) {
-            statusText = "IMU開始コマンドを送信できませんでした"
+        if (!restartRemoteImuStream(configuredImuRateHz)) {
+            statusText = "IMU開始コマンドを送信できませんでした (rate=${configuredImuRateHz}Hz)"
             return
         }
         imuPoseHealthy = false
         statusText = "Starting IMU..."
         executeImu {
             attitudeTipSpeedEstimator.reset()
-            val started = imuEstimator.start()
+            val started = imuEstimator.start(configuredImuRateHz.toFloat())
             imuEstimatorStarted = started
             if (started) openImuLog() else closeImuLog()
             runOnUiThread {
                 imuRunning = started
                 imuCalibrating = false
                 statusText = if (started) {
-                    "IMU started (JNI attitude enabled)"
+                    "IMU started (${configuredImuRateHz}Hz, JNI attitude enabled)"
                 } else {
                     "IMU start failed: ${imuEstimator.lastError ?: "unknown error"}"
                 }
@@ -739,8 +788,8 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             startImu()
             return
         }
-        if (!restartRemoteImuStream()) {
-            statusText = "再接続後のIMU開始コマンドを送信できませんでした"
+        if (!restartRemoteImuStream(configuredImuRateHz)) {
+            statusText = "再接続後のIMU開始コマンドを送信できませんでした (rate=${configuredImuRateHz}Hz)"
             return
         }
         imuRunning = true
@@ -748,16 +797,22 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
         android.util.Log.i("SprightImu", "IMU stream resumed after BLE reconnect")
     }
 
-    private fun restartRemoteImuStream(): Boolean {
+    private fun restartRemoteImuStream(rateHz: Int): Boolean {
+        if (rateHz !in SUPPORTED_IMU_RATE_HZ) {
+            android.util.Log.w("SprightImu", "Unsupported IMU rate request: ${rateHz}Hz")
+            return false
+        }
+
         // BLE1507 can retain its streaming flag across a broken GATT link while
         // the old notification route is already gone. A lone "imu start" is
-        // then acknowledged but produces no samples. Reset the peripheral
-        // stream explicitly; Ble1507Client serializes both writes.
+        // then acknowledged but produces no samples. Reset and reconfigure the
+        // peripheral stream explicitly; Ble1507Client serializes all writes.
         val stopRequest = bleClient.sendCommand("imu stop") ?: return false
+        val rateRequest = bleClient.sendCommand("imu rate $rateHz") ?: return false
         val startRequest = bleClient.sendCommand("imu start") ?: return false
         android.util.Log.i(
             "SprightImu",
-            "Queued remote IMU restart stopId=$stopRequest startId=$startRequest",
+            "Queued remote IMU restart stopId=$stopRequest rateId=$rateRequest startId=$startRequest rate=${rateHz}Hz",
         )
         return true
     }
@@ -1689,6 +1744,13 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
     override fun onMessage(message: String) {
         statusText = message
         appendMessageLog(message)
+
+        parseImuRateFromMessage(message)?.let { parsedRateHz ->
+            if (parsedRateHz in SUPPORTED_IMU_RATE_HZ) {
+                configuredImuRateHz = parsedRateHz
+            }
+        }
+
         when (message) {
             WARN_REPEATED_0X1F -> showDiagBondRecovery = true
             BOND_HINT_MESSAGE -> showBondHint = true
@@ -1719,6 +1781,9 @@ class MainActivity : ComponentActivity(), Ble1507Client.Listener {
             scheduleNextColorStep(operation)
         }
     }
+
+    private fun parseImuRateFromMessage(message: String): Int? =
+        IMU_CFG_RATE_REGEX.find(message)?.groupValues?.getOrNull(1)?.toIntOrNull()
 
     private fun appendMessageLog(message: String) {
         if (message.isBlank()) {
@@ -2507,6 +2572,9 @@ private fun buildColorMapBitmap(width: Int, height: Int): Bitmap? {
 private const val DIAG_BOND_COMMAND = "diag bond"
 private const val WARN_REPEATED_0X1F = "WARN repeated 0x1f: run diag bond"
 private const val BOND_HINT_MESSAGE = "HINT clear Android bond + /mnt/spif/BLE1507_BONDINFO"
+private const val DEFAULT_IMU_RATE_HZ = 60
+private val SUPPORTED_IMU_RATE_HZ = setOf(60, 120, 240)
+private val IMU_CFG_RATE_REGEX = Regex("""imu cfg rate=(\d+)""")
 private const val MAX_LOG_MESSAGES = 24
 private const val IMU_LOG_FILE_NAME = "imu-attitude-latest.csv"
 private const val VOICE_LATENCY_FILE_NAME = "voice-e2e.csv"
@@ -2516,6 +2584,7 @@ private const val PREF_MAINTAIN_BLE = "maintain_ble_connection"
 private const val PREF_OFFLINE_SPEECH_PACK_STATE = "offline_speech_pack_state"
 private const val PREF_TOUCHDESIGNER_HOST = "touchdesigner_host"
 private const val PREF_TOUCHDESIGNER_PORT = "touchdesigner_port"
+private const val PREF_IMU_RATE_HZ = "imu_rate_hz"
 private const val DEFAULT_TOUCHDESIGNER_HOST = "192.168.2.100"
 private const val OLD_DEFAULT_TOUCHDESIGNER_HOST = "192.168.1.100"
 private const val DEFAULT_TOUCHDESIGNER_PORT = 12345
@@ -2523,7 +2592,7 @@ private const val SPEECH_PACK_STATE_NONE = "none"
 private const val SPEECH_PACK_STATE_REQUESTED = "requested"
 private const val SPEECH_PACK_STATE_READY = "ready"
 private const val SYSTEM_UI_REHIDE_DELAY_MS = 500L
-private const val IMU_POSE_UI_INTERVAL_MS = 16L
+private const val IMU_POSE_UI_INTERVAL_MS = 17L
 private const val IMU_DEBUG_UI_INTERVAL_MS = 100L
 private const val IMU_RATE_WINDOW_MS = 1_000L
 private const val MAX_EXHIBITION_GRADIENT_SECONDS = 5f

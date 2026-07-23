@@ -49,7 +49,8 @@ class ImuNativeAttitudeEstimator {
     private var initialized = false
     private var started = false
     private var calibrating = false
-    private val timestampNormalizer = ImuTimestampNormalizer(FIXED_IMU_RATE_HZ.toDouble())
+    private var configuredImuRateHz = DEFAULT_IMU_RATE_HZ
+    private var timestampNormalizer = ImuTimestampNormalizer(DEFAULT_IMU_RATE_HZ.toDouble())
     private var yawReferenceDeg: Float? = null
     var lastError: String? = null
         private set
@@ -57,10 +58,18 @@ class ImuNativeAttitudeEstimator {
     fun isAvailable(): Boolean = true
 
     @Synchronized
-    fun start(): Boolean {
+    fun start(imuRateHz: Float = DEFAULT_IMU_RATE_HZ): Boolean {
+        if (!isSupportedImuRate(imuRateHz)) {
+            lastError = "Unsupported IMU rate: $imuRateHz"
+            return false
+        }
+
         stop()
 
-        val ok = motionLib.initialize(FIXED_IMU_RATE_HZ)
+        configuredImuRateHz = imuRateHz
+        timestampNormalizer = ImuTimestampNormalizer(configuredImuRateHz.toDouble())
+
+        val ok = motionLib.initialize(configuredImuRateHz)
         if (!ok) {
             lastError = motionLib.lastError ?: "InertialMotionLib2 initialization failed"
             initialized = false
@@ -222,8 +231,11 @@ class ImuNativeAttitudeEstimator {
         yawReferenceDeg = null
     }
 
+    private fun isSupportedImuRate(rateHz: Float): Boolean =
+        rateHz == 60f || rateHz == 120f || rateHz == 240f
+
     companion object {
-        private const val FIXED_IMU_RATE_HZ = 60f
+        private const val DEFAULT_IMU_RATE_HZ = 60f
         private const val MODE_DEFAULT = 1
         private const val CALIB_PARAM_ACCEL_BIAS = 0
         private const val CALIB_PARAM_GYRO_BIAS = 1
