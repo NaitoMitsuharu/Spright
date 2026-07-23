@@ -116,6 +116,22 @@ APKを入れ直さずモデルだけ再転送する場合:
 ./gradlew pushColorModelDebug -PcolorModel=qwen3-0.6b
 ```
 
+### APKだけ配布する場合のWindowsコマンド
+
+Android StudioやGradleを入れずに、`adb`と`curl`だけで配備する場合は次をPowerShellで実行します。`app-debug.apk`は配布されたAPKのパスに置き換えてください。
+
+```powershell
+adb install -r -d .\app-debug.apk
+$ModelUrl = "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/50968a4468ef4233ed78cd7c3de230dd1d61a56b/Qwen3-0.6B-Q4_K_M.gguf"
+curl.exe -L --fail --show-error "$ModelUrl" --output "Qwen3-0.6B-Q4_K_M.gguf"
+adb shell mkdir -p /sdcard/Android/data/com.example.ble1507/files/models
+adb push "Qwen3-0.6B-Q4_K_M.gguf" /sdcard/Android/data/com.example.ble1507/files/models/Qwen3-0.6B-Q4_K_M.gguf
+adb shell am force-stop com.example.ble1507
+adb shell monkey -p com.example.ble1507 -c android.intent.category.LAUNCHER 1
+```
+
+複数端末が接続されている場合は、各`adb`コマンドへ`-s <serial>`を追加してください。
+
 adb端末が複数ある場合はシリアル指定が必須です。
 
 ```bash
