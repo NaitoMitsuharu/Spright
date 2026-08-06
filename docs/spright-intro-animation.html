@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SPRIGHT | Light, translated</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+    :root { --ink:#dce6ec; --muted:#8f9da8; --cyan:#65e7ed; --lime:#9bffbd; --coral:#ff927e; --panel:rgba(10,18,26,.62); }
+    * { box-sizing:border-box; }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#050b12; color:var(--ink); font-family:'Zen Kaku Gothic New', sans-serif; }
+    canvas { position:fixed; inset:0; z-index:0; }
+    .grain { position:fixed; inset:0; pointer-events:none; z-index:1; opacity:.17; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E"); mix-blend-mode:screen; }
+    .hud { position:fixed; inset:0; z-index:2; pointer-events:none; padding:clamp(18px,3.5vw,52px); display:grid; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; }
+    .brand { font:500 11px/1 'DM Mono',monospace; letter-spacing:.34em; color:#d9eef2; }
+    .brand span { color:var(--lime); }
+    .clock { text-align:right; font:400 11px/1 'DM Mono',monospace; color:var(--muted); letter-spacing:.1em; }
+    .story { align-self:center; max-width:min(420px,32vw); grid-column:1; grid-row:2; transform:translateY(-5%); }
+    .kicker { font:500 10px/1.3 'DM Mono',monospace; color:var(--lime); letter-spacing:.22em; text-transform:uppercase; margin-bottom:16px; }
+    h1 { margin:0; font-size:clamp(32px,4.15vw,62px); font-weight:500; line-height:1.2; letter-spacing:0; text-wrap:balance; text-shadow:0 0 35px rgba(101,231,237,.14); }
+    .copy { margin:20px 0 0; color:#aebbc4; max-width:36ch; font-size:clamp(13px,1.2vw,16px); line-height:1.85; opacity:.98; }
+    .chips { grid-column:1; grid-row:3; display:flex; flex-wrap:wrap; gap:8px; align-self:end; }
+    .chip { border:1px solid rgba(174,202,211,.32); background:rgba(7,15,23,.46); border-radius:3px; padding:7px 10px; color:#afc1ca; font:400 10px/1 'DM Mono',monospace; letter-spacing:.08em; }
+    .chip.active { color:#071012; background:var(--lime); border-color:var(--lime); }
+    .progress { position:fixed; left:0; bottom:0; z-index:3; width:100%; height:3px; background:rgba(220,238,241,.14); }
+    .progress > i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--lime),var(--cyan),var(--coral)); box-shadow:0 0 16px var(--cyan); }
+    .status { position:fixed; right:clamp(18px,3.5vw,52px); bottom:clamp(20px,3.5vw,48px); z-index:3; color:#a8bbc5; font:400 10px/1.4 'DM Mono',monospace; text-align:right; letter-spacing:.06em; }
+    .status b { color:var(--lime); font-weight:500; }
+    .pause { position:fixed; z-index:4; right:22px; top:48%; width:36px; height:36px; opacity:.15; border:1px solid #cae0e5; background:#08111b; color:#e7f5f7; border-radius:50%; cursor:pointer; pointer-events:auto; font:14px 'DM Mono'; transition:opacity .2s; }
+    .pause:hover { opacity:1; }
+    .format { position:fixed; inset:0; z-index:3; pointer-events:none; border:1px solid rgba(220,238,241,.18); }
+    @media (max-aspect-ratio: 16/9) { .hud { width:177.78vh; left:50%; transform:translateX(-50%); } .story { max-width:420px; } }
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <main class="hud">
+    <div class="brand">SP<span>R</span>IGHT / EXPERIENCE PROTOTYPE</div>
+    <div class="clock" id="clock">00:00 / 00:36</div>
+    <section class="story" aria-live="polite">
+      <div class="kicker" id="kicker">01 / CONNECT</div>
+      <h1 id="headline">光を、<br>手のなかの言葉に。</h1>
+      <p class="copy" id="copy">Spresenseを内蔵したペンライトと、あなたの表現をつなぐAndroidアプリ。</p>
+    </section>
+    <div class="chips" id="chips"></div>
+  </main>
+  <div class="status" id="status"><b>APPium SIMULATION</b><br>BLE1507 / READY</div>
+  <div class="format" aria-hidden="true"></div>
+  <button class="pause" id="pause" aria-label="一時停止">II</button>
+  <div class="progress"><i id="bar"></i></div>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+
+    const DURATION = 38;
+    const scenes = [
+      { at:0, end:6.2, k:'01 / BLE CONNECTION', h:'スマホと光を<br>つなぐ。', c:'Spresenseを内蔵したBLEペンライトを、Androidアプリから直接コントロール。', tags:['ANDROID','BLE 5','SPRESENSE'], s:'APPium REPLAY<br>BLE1507 / CONNECTED' },
+      { at:6.2, end:12.4, k:'02 / COLOR SYNC', h:'声と指先が<br>現実の色になる。', c:'音声入力やカラーピッカーで選んだ光は、アプリ画面と手元のペンライトへ同時に反映される。', tags:['VOICE','UI COLOR','RGB PWM'], s:'VOICE “夕焼けのオレンジ”<br>COLOR / #FF6B38' },
+      { at:12.4, end:18.6, k:'03 / MOTION SYNC', h:'振る。傾ける。<br>画面の光も動く。', c:'実物のペンライトを動かすと、60 HzのIMUデータがアプリ内の3Dペンライトを同期させる。', tags:['IMU 60 HZ','ROLL / PITCH / YAW','3D SYNC'], s:'IMU / 60.0 Hz<br>ATTITUDE / LIVE' },
+      { at:18.6, end:25.1, k:'04 / WLAN STAGE', h:'動きが<br>ライブ背景をつくる。', c:'WLAN経由でTouchDesignerへ姿勢と色を送信。ライブ背景を動かし、ハプティクスを手元へ返す。', tags:['WLAN','TOUCHDESIGNER','HAPTICS'], s:'TOUCHDESIGNER / ONLINE<br>VISUAL + HAPTIC RETURN' },
+      { at:25.1, end:31.5, k:'05 / OPEN ROUTING', h:'ひとつの動きが<br>ライブ全体へ。', c:'スマホとSpresenseを起点に、サンプラー、照明、スピーカーをつなぎ、表現の機器を横断する。', tags:['SAMPLER','LIGHTING','SPEAKER'], s:'ROUTING / EXPANDING<br>GESTURE TO STAGE' },
+      { at:31.5, end:38, k:'06 / NEW EXPERIENCE', h:'光がライブに<br>参加する。', c:'光が演出を動かし、演出がハプティクスとして手元へ返る。観客と舞台を往復する、新しい体験へ。', tags:['INFLUENCE','HAPTICS','CO-CREATION'], s:'SPRIGHT / FEEL THE STAGE<br>INPUT AND RESPONSE' },
+    ];
+    const $ = id => document.getElementById(id);
+    const kicker=$('kicker'), headline=$('headline'), copy=$('copy'), chips=$('chips'), status=$('status');
+    let sceneIndex=-1;
+    function setScene(index) {
+      if (index === sceneIndex) return;
+      sceneIndex=index; const scene=scenes[index];
+      kicker.textContent=scene.k; headline.innerHTML=scene.h; copy.textContent=scene.c; status.innerHTML=scene.s;
+      chips.innerHTML=scene.tags.map((tag,i)=>`<span class="chip ${i===0?'active':''}">${tag}</span>`).join('');
+    }
+
+    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); renderer.setClearColor(0x050b12,1);
+    document.body.prepend(renderer.domElement);
+    const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.1,100); camera.position.set(0,1.1,13);
+    const world=new THREE.Scene(); world.background=new THREE.Color(0x061821); world.fog=new THREE.FogExp2(0x061821,.045);
+    const key=new THREE.PointLight(0x82f6ff,20,24,2); key.position.set(-4,5,5); world.add(key);
+    const rim=new THREE.PointLight(0xff8f7b,15,20,2); rim.position.set(5,-1,3); world.add(rim);
+    world.add(new THREE.AmbientLight(0x496070,1.8));
+
+    const starGeo=new THREE.BufferGeometry(), starCount=900, pos=new Float32Array(starCount*3);
+    for(let i=0;i<starCount;i++){ pos[i*3]=(Math.random()-.5)*30;pos[i*3+1]=(Math.random()-.5)*19;pos[i*3+2]=(Math.random()-.5)*18-6; }
+    starGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xc0eaf0,size:.022,transparent:true,opacity:.72})); world.add(stars);
+    const motionGrid=new THREE.GridHelper(24,18,0x55a7ff,0x1a4a8e);motionGrid.rotation.x=Math.PI/2;motionGrid.position.z=-5;motionGrid.material.transparent=true;motionGrid.material.opacity=0;world.add(motionGrid);
+    const colorRings=[];for(let i=0;i<10;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.7+i*.3,.015,5,64),new THREE.MeshBasicMaterial({color:0xff81cf,transparent:true,opacity:0}));ring.position.set(1.2,.3,-3-i*.07);world.add(ring);colorRings.push(ring);}
+    const stageTunnel=[];for(let i=0;i<20;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(1+i*.2,.018,5,64),new THREE.MeshBasicMaterial({color:0xffbd61,transparent:true,opacity:0}));ring.rotation.x=Math.PI/2;ring.position.z=-2-i*.55;world.add(ring);stageTunnel.push(ring);}
+    const routeParticles=new THREE.Group();for(let i=0;i<120;i++){const dot=new THREE.Mesh(new THREE.SphereGeometry(.025,7,7),new THREE.MeshBasicMaterial({color:0xb6ff67,transparent:true,opacity:0}));dot.position.set((Math.random()-.5)*13,(Math.random()-.5)*8,-2-Math.random()*4);routeParticles.add(dot);}world.add(routeParticles);
+    const hapticWaves=[];for(let i=0;i<4;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.38+i*.2,.012,5,48),new THREE.MeshBasicMaterial({color:0xff7fab,transparent:true,opacity:0}));ring.rotation.x=Math.PI/2;ring.position.set(2.4,-1.6,-.5);world.add(ring);hapticWaves.push(ring);}
+    function line(a,b,color=0x6cebf1,opacity=.7){ const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a),new THREE.Vector3(...b)]); const m=new THREE.LineBasicMaterial({color,transparent:true,opacity}); return new THREE.Line(g,m); }
+    const network=new THREE.Group(); world.add(network);
+    const phone=new THREE.Group(); const phoneBody=new THREE.Mesh(new THREE.BoxGeometry(2.1,4.25,.18),new THREE.MeshStandardMaterial({color:0x111e28,metalness:.8,roughness:.28})); phone.add(phoneBody);
+    const screen=new THREE.Mesh(new THREE.PlaneGeometry(1.88,4.02),new THREE.MeshBasicMaterial({color:0x07131d})); screen.position.z=.101; phone.add(screen);
+    const glow=new THREE.Mesh(new THREE.PlaneGeometry(1.25,.48),new THREE.MeshBasicMaterial({color:0x0e6090,transparent:true,opacity:.85})); glow.position.set(0,.25,.112); phone.add(glow);
+    const mic=new THREE.Mesh(new THREE.RingGeometry(.19,.26,32),new THREE.MeshBasicMaterial({color:0x9bffbd,side:THREE.DoubleSide})); mic.position.set(0,-1.4,.113); phone.add(mic);
+    const appLabel=document.createElement('canvas'); appLabel.width=512;appLabel.height=512; const ctx=appLabel.getContext('2d');
+    const labelTex=new THREE.CanvasTexture(appLabel); const labelMat=new THREE.SpriteMaterial({map:labelTex,transparent:true}); const label=new THREE.Sprite(labelMat);label.scale.set(1.5,.75,1);label.position.set(0,1.28,.115); phone.add(label);
+    function paintPhone(text,hex){ctx.clearRect(0,0,512,512);ctx.fillStyle='#d7f0f3';ctx.font='500 36px sans-serif';ctx.textAlign='center';ctx.fillText('SPRIGHT',256,112);ctx.fillStyle=hex;ctx.shadowColor=hex;ctx.shadowBlur=35;ctx.fillRect(150,194,212,36);ctx.shadowBlur=0;ctx.fillStyle='#aac0c8';ctx.font='26px sans-serif';ctx.fillText(text,256,287);labelTex.needsUpdate=true;glow.material.color.set(hex);}
+    paintPhone('BLE READY','#9bffbd'); phone.position.set(-3.35,.15,.5); phone.rotation.y=.22; world.add(phone);
+
+    const pen=new THREE.Group(), penAxis=new THREE.Group(), grip=new THREE.Mesh(new THREE.CylinderGeometry(.27,.32,2.2,24),new THREE.MeshStandardMaterial({color:0x17242e,metalness:.72,roughness:.24}));
+    pen.add(penAxis); penAxis.add(grip);
+    const emitterMat=new THREE.MeshStandardMaterial({color:0x91faff,emissive:0x1188aa,emissiveIntensity:2.7,transparent:true,opacity:.93,roughness:.18});
+    const emitter=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,2.55,32),emitterMat); emitter.position.y=2.375;penAxis.add(emitter);
+    const emitterCap=new THREE.Mesh(new THREE.SphereGeometry(.2,20,12),emitterMat);emitterCap.position.y=3.65;penAxis.add(emitterCap);
+    const collar=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.14,24),new THREE.MeshStandardMaterial({color:0xb6c8cc,metalness:.8,roughness:.2}));collar.position.y=1.15;penAxis.add(collar);
+    const aura=new THREE.PointLight(0x57ebff,11,7,2);aura.position.y=2.4;penAxis.add(aura); pen.position.set(2.4,-1.7,0);penAxis.rotation.z=.1;world.add(pen);
+    const phonePen=new THREE.Group(), phoneGrip=new THREE.Mesh(new THREE.CylinderGeometry(.045,.05,.38,14),new THREE.MeshBasicMaterial({color:0x75949b})),phoneTube=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.48,14),new THREE.MeshBasicMaterial({color:0x91faff}));phoneGrip.position.y=-.19;phoneTube.position.y=.24;phonePen.add(phoneGrip,phoneTube);phonePen.position.set(0,.05,.116);phone.add(phonePen);
+    const bleDot=new THREE.Mesh(new THREE.SphereGeometry(.08,14,14),new THREE.MeshBasicMaterial({color:0x9bffbd})); bleDot.position.set(-.7,1.55,.22);phone.add(bleDot);
+    const beamMat=new THREE.MeshBasicMaterial({color:0x63e9ef,transparent:true,opacity:.06,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(2.7,9,40,1,true),beamMat); beam.rotation.z=Math.PI/2;beam.position.set(1.8,.5,-2);world.add(beam);
+
+    const tdCanvas=document.createElement('canvas');tdCanvas.width=1024;tdCanvas.height=620;const tdContext=tdCanvas.getContext('2d'),tdTexture=new THREE.CanvasTexture(tdCanvas);
+    function paintTouchDesigner(color,roll,pitch,yaw,time){const width=tdCanvas.width,height=tdCanvas.height,phase=time*1.8;tdContext.fillStyle='#05090d';tdContext.fillRect(0,0,width,height);tdContext.globalAlpha=.2;tdContext.strokeStyle='#dffcff';tdContext.lineWidth=1;for(let x=0;x<width;x+=64){tdContext.beginPath();tdContext.moveTo(x,0);tdContext.lineTo(x,height);tdContext.stroke();}for(let y=0;y<height;y+=64){tdContext.beginPath();tdContext.moveTo(0,y);tdContext.lineTo(width,y);tdContext.stroke();}tdContext.globalAlpha=1;for(let ribbon=0;ribbon<9;ribbon++){tdContext.beginPath();for(let x=0;x<=width;x+=12){const wave=Math.sin(x*.013+phase+ribbon*.72+yaw*4)*((25+ribbon*9)*(1+Math.abs(pitch)*2));const y=height*.5+wave+(ribbon-4)*22+roll*90;if(x===0)tdContext.moveTo(x,y);else tdContext.lineTo(x,y);}tdContext.strokeStyle=`hsla(${color.getHSL({}).h*360},95%,${48+ribbon*3}%,${.3+ribbon*.06})`;tdContext.lineWidth=2+ribbon*.45;tdContext.stroke();}for(let dot=0;dot<36;dot++){const x=(dot*83+time*95)%width,y=height*.5+Math.sin(dot*.7+phase)*120+pitch*100;tdContext.fillStyle='#'+color.getHexString();tdContext.globalAlpha=.25+(dot%4)*.12;tdContext.fillRect(x,y,4,4);}tdContext.globalAlpha=1;tdContext.fillStyle='#e5fcff';tdContext.font='500 22px monospace';tdContext.fillText('TOUCHDESIGNER / LIVE PATCH',34,46);tdContext.fillStyle='#'+color.getHexString();tdContext.fillText(`COLOR  #${color.getHexString().toUpperCase()}`,34,82);tdContext.fillStyle='#b5c7ce';tdContext.fillText(`ROLL ${roll.toFixed(2)}  PITCH ${pitch.toFixed(2)}  YAW ${yaw.toFixed(2)}`,34,height-32);tdTexture.needsUpdate=true;}
+    const td=new THREE.Group(); td.position.set(4.1,1.4,-1.9); const tdScreen=new THREE.Mesh(new THREE.BoxGeometry(4.25,2.72,.14),new THREE.MeshStandardMaterial({color:0x192830,metalness:.5,roughness:.32}));td.add(tdScreen);
+    const tdFace=new THREE.Mesh(new THREE.PlaneGeometry(3.95,2.42),new THREE.MeshBasicMaterial({map:tdTexture,transparent:true,opacity:.96}));tdFace.position.z=.08;td.add(tdFace);td.visible=false;world.add(td);
+    const sampler=new THREE.Group();sampler.position.set(4.3,-2.5,-1); const padMat=new THREE.MeshStandardMaterial({color:0x232f38,emissive:0x073340,emissiveIntensity:1.2});
+    for(let x=0;x<4;x++)for(let y=0;y<2;y++){let pad=new THREE.Mesh(new THREE.BoxGeometry(.35,.35,.12),padMat.clone());pad.position.set((x-1.5)*.45,(y-.5)*.45,0);sampler.add(pad);} sampler.visible=false;world.add(sampler);
+    const lighting=new THREE.Group();for(let i=0;i<3;i++){const beam=new THREE.Mesh(new THREE.ConeGeometry(.16,2.5,24,1,true),new THREE.MeshBasicMaterial({color:0xffe36e,transparent:true,opacity:.34,side:THREE.DoubleSide}));beam.rotation.x=Math.PI/2;beam.position.set((i-1)*.45,0,0);lighting.add(beam);}lighting.position.set(4.4,-2.1,-1);lighting.visible=false;world.add(lighting);
+    const speaker=new THREE.Group();const speakerBox=new THREE.Mesh(new THREE.BoxGeometry(1.05,1.05,.4),new THREE.MeshStandardMaterial({color:0x17252d,metalness:.6,roughness:.25}));speaker.add(speakerBox);const speakerWaves=[];for(let i=0;i<3;i++){const wave=new THREE.Mesh(new THREE.TorusGeometry(.22+i*.16,.014,5,40,Math.PI),new THREE.MeshBasicMaterial({color:0x74caff,transparent:true,opacity:.5}));wave.rotation.z=-Math.PI/2;wave.position.x=.5;speaker.add(wave);speakerWaves.push(wave);}speaker.position.set(5.2,-3.35,-1);speaker.visible=false;world.add(speaker);
+    function arc(a,b,color){ const c=new THREE.CatmullRomCurve3([a.clone(),a.clone().lerp(b,.45).add(new THREE.Vector3(0,1.2,0)),b.clone()]); const l=new THREE.Line(new THREE.TubeGeometry(c,24,.012,5,false),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.0}));network.add(l);return l; }
+    const arcs=[arc(phone.position,pen.position,0x9bffbd),arc(phone.position,td.position,0x65e7ed),arc(phone.position,sampler.position,0xff927e),arc(td.position,sampler.position,0xffdb79)];
+    function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}addEventListener('resize',resize);
+    let paused=false,start=performance.now(),pausedAt=0; $('pause').onclick=()=>{paused=!paused; if(paused){pausedAt=performance.now();$('pause').textContent='▶';}else{start+=performance.now()-pausedAt;$('pause').textContent='II';}};
+    function smooth(a,b,t){const x=Math.min(1,Math.max(0,(t-a)/(b-a)));return x*x*(3-2*x)}
+    const chapterBackgrounds=[0x061821,0x28122c,0x11285d,0x39200c,0x123322,0x280918];
+    function animate(now){requestAnimationFrame(animate);if(paused)return;const time=((now-start)/1000)%DURATION;const active=scenes.findIndex(s=>time>=s.at&&time<s.end);setScene(active);
+      $('clock').textContent=`00:${String(Math.floor(time)).padStart(2,'0')} / 00:38`; $('bar').style.width=`${time/DURATION*100}%`;
+      const connect=smooth(0,6.2,time), colorPhase=smooth(6.2,7.4,time), imuPhase=smooth(12.4,13.6,time), tdPhase=smooth(18.6,19.8,time), future=smooth(25.1,26.3,time), hapticPhase=smooth(31.5,32.6,time);
+      world.background.lerp(new THREE.Color(chapterBackgrounds[active]),.035); world.fog.color.copy(world.background); key.color.setHSL((.46+active*.1)%1,.78,.67);rim.color.copy(key.color);
+      stars.rotation.y=time*.009; stars.rotation.x=Math.sin(time*.13)*.035;stars.material.opacity=.72*(1-colorPhase*.7-imuPhase*.65-tdPhase*.35);phone.rotation.y=.22+Math.sin(time*.55)*.05; phone.position.y=.15+Math.sin(time*1.2)*.06;
+      motionGrid.material.opacity=imuPhase*.34;motionGrid.rotation.z=time*.04;colorRings.forEach((ring,i)=>{ring.material.opacity=colorPhase*.4;ring.rotation.z=time*.24+i*.2;ring.scale.setScalar(1+Math.sin(time*2+i)*.12);});stageTunnel.forEach((ring,i)=>{ring.material.opacity=tdPhase*.38;ring.rotation.z=time*.32+i*.13;});routeParticles.children.forEach((dot,i)=>{dot.material.opacity=future*.68;dot.position.y+=Math.sin(time*2+i)*.002;});
+      const colorPalette=[.02,.14,.52,.76,.88];const syncIntensity=Math.max(colorPhase,tdPhase);const colorStep=Math.floor((time-6.2)*1.45);const hue=colorPalette[((colorStep%colorPalette.length)+colorPalette.length)%colorPalette.length];emitterMat.color.setHSL(hue,.9,.64);emitterMat.emissive.setHSL(hue,.95,.26);aura.color.copy(emitterMat.color);glow.material.color.copy(emitterMat.color);phoneTube.material.color.copy(emitterMat.color);paintPhone(colorPhase>.08?`SYNC #${emitterMat.color.getHexString().toUpperCase()}`:'BLE READY',`#${emitterMat.color.getHexString()}`);
+      const motionTime=(time-12.4)*3.1;const roll=Math.sin(motionTime)*.28*imuPhase,pitch=Math.sin(motionTime*.73+1.2)*.24*imuPhase,yaw=.1+Math.sin(motionTime*.51)*.72*imuPhase;penAxis.rotation.set(roll,pitch,yaw);phonePen.rotation.set(roll,pitch,yaw);pen.position.x=2.4+Math.sin(motionTime*.51)*.45*imuPhase;pen.position.y=-1.7+Math.cos(motionTime)*.28*imuPhase;paintTouchDesigner(emitterMat.color,roll,pitch,yaw,time);
+      td.visible=tdPhase>.01;td.scale.setScalar(.75+tdPhase*.4);td.rotation.y=-.15+Math.sin(time*1.3)*.07;sampler.visible=future>.01;lighting.visible=future>.01;speaker.visible=future>.01;sampler.scale.setScalar(.75+future*.45);lighting.rotation.z=Math.sin(time*2)*.16;speakerWaves.forEach((wave,i)=>wave.scale.setScalar(1+Math.sin(time*7+i)*.18));
+      arcs[0].material.opacity=.18+connect*.35+Math.sin(time*5)*.1;arcs[1].material.opacity=tdPhase*.78;arcs[2].material.opacity=future*.7;arcs[3].material.opacity=future*.45;const returnPulse=Math.max(hapticPhase,tdPhase*.58);hapticWaves.forEach((wave,i)=>{wave.material.opacity=returnPulse*(.4-i*.07)*(.65+Math.sin(time*8-i)*.35);wave.scale.setScalar(1+returnPulse*(i*.5+(time%1)*.8));});
+      beam.visible=tdPhase<.01;beamMat.opacity=.02+colorPhase*.09+imuPhase*.07; beam.scale.y=1+Math.sin(time*3)*.05;
+      const baseCameraZ=15;
+      if(future>.02){camera.position.x=THREE.MathUtils.lerp(camera.position.x,-.3,.015);camera.position.z=THREE.MathUtils.lerp(camera.position.z,baseCameraZ+2.5,.015)}else{camera.position.x=THREE.MathUtils.lerp(camera.position.x,0,.025);camera.position.z=THREE.MathUtils.lerp(camera.position.z,baseCameraZ,.025)} camera.lookAt(0,.1,0);
+      renderer.render(world,camera);
+    } requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
