@@ -37,6 +37,10 @@ public final class InertialMotionLib2Compat {
         return call("getEulerAngle", delegate::getEulerAngle, null);
     }
 
+    public float[] getQuaternion() {
+        return call("getQuaternion", delegate::getQuaternion, null);
+    }
+
     public boolean setMode(int mode) {
         return callBoolean("setMode", () -> delegate.setMode(mode));
     }

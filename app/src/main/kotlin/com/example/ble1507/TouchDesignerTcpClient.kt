@@ -43,9 +43,10 @@ internal object TouchDesignerProtocol {
     fun imu(timestampMs: Long, frame: TouchDesignerMotionFrame): String? {
         val attitude = frame.attitude
         if (
-            !attitude.rollDeg.isFinite() ||
-            !attitude.pitchDeg.isFinite() ||
-            !attitude.yawDeg.isFinite() ||
+            !attitude.w.isFinite() ||
+            !attitude.x.isFinite() ||
+            !attitude.y.isFinite() ||
+            !attitude.z.isFinite() ||
             !frame.speed.isFinite()
         ) {
             return null
@@ -59,10 +60,11 @@ internal object TouchDesignerProtocol {
         )
         val values = String.format(
             Locale.US,
-            "%.6f,%.6f,%.6f,%.6f,%s",
-            attitude.rollDeg,
-            attitude.pitchDeg,
-            attitude.yawDeg,
+            "%.6f,%.6f,%.6f,%.6f,%.6f,%s",
+            attitude.w,
+            attitude.x,
+            attitude.y,
+            attitude.z,
             frame.speed.coerceAtLeast(0f),
             hex,
         )
@@ -166,9 +168,10 @@ class TouchDesignerTcpClient(
         val attitude = frame.attitude
         if (
             closed ||
-            !attitude.rollDeg.isFinite() ||
-            !attitude.pitchDeg.isFinite() ||
-            !attitude.yawDeg.isFinite() ||
+            !attitude.w.isFinite() ||
+            !attitude.x.isFinite() ||
+            !attitude.y.isFinite() ||
+            !attitude.z.isFinite() ||
             !frame.speed.isFinite()
         ) {
             return

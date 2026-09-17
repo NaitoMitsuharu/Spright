@@ -217,6 +217,8 @@ class ComposeTestActivity : ComponentActivity() {
                         attitudeResetRequested = true
                         dialog = null
                     },
+                    configuredImuRateHz = 60,
+                    onImuRateChanged = {},
                     touchDesignerHost = touchDesignerHost,
                     touchDesignerPort = touchDesignerPort,
                     touchDesignerState = touchDesignerState,

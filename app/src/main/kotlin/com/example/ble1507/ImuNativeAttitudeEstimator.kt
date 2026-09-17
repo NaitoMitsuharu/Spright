@@ -8,6 +8,10 @@ data class AttitudeEstimate(
     val rollDeg: Float,
     val pitchDeg: Float,
     val yawDeg: Float,
+    val w: Float = 1f,
+    val x: Float = 0f,
+    val y: Float = 0f,
+    val z: Float = 0f,
 )
 
 internal class ImuTimestampNormalizer(
@@ -175,6 +179,10 @@ class ImuNativeAttitudeEstimator {
             lastError = motionLib.lastError ?: "Native IMU update failed"
             return null
         }
+        val quaternion = motionLib.getQuaternion()?.takeIf { it.size >= 4 } ?: run {
+            lastError = motionLib.lastError ?: "Quaternion is unavailable"
+            return null
+        }
         val euler = motionLib.getEulerAngle()?.takeIf { it.size >= 3 } ?: run {
             lastError = motionLib.lastError ?: "Euler angle is unavailable"
             return null
@@ -186,6 +194,10 @@ class ImuNativeAttitudeEstimator {
             rollDeg = radiansToDegrees(euler[0]),
             pitchDeg = radiansToDegrees(euler[1]),
             yawDeg = normalizeYawDeg(absoluteYawDeg - reference),
+            w = quaternion[0],
+            x = quaternion[1],
+            y = quaternion[2],
+            z = quaternion[3],
         )
     }
 

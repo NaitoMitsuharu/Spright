@@ -24,7 +24,7 @@ class TouchDesignerTcpClientTest {
         val message = TouchDesignerProtocol.imu(
             timestampMs = 1_725_000_123_456L,
             frame = TouchDesignerMotionFrame(
-                attitude = AttitudeEstimate(12.5f, -3.25f, 179.0f),
+                attitude = AttitudeEstimate(12.5f, -3.25f, 179.0f, 0.5f, -0.25f, 0.75f, -1.0f),
                 speed = 1.75f,
                 color = 0xFF03A7EF.toInt(),
             ),
@@ -32,7 +32,7 @@ class TouchDesignerTcpClientTest {
 
         assertEquals(
             "{\"cmd\":\"send_imu_values\",\"timestamp\":1725000123456," +
-                "\"data\":{\"imu_values\":\"12.500000,-3.250000,179.000000,1.750000,#03A7EF\"}}\n",
+                "\"data\":{\"imu_values\":\"0.500000,-0.250000,0.750000,-1.000000,1.750000,#03A7EF\"}}\n",
             message,
         )
         assertEquals(1, message?.count { it == '\n' })
@@ -43,14 +43,18 @@ class TouchDesignerTcpClientTest {
         assertNull(
             TouchDesignerProtocol.imu(
                 1L,
-                TouchDesignerMotionFrame(AttitudeEstimate(Float.NaN, 0f, 0f), 0f, 0xFFFFFFFF.toInt()),
+                TouchDesignerMotionFrame(
+                    AttitudeEstimate(0f, 0f, 0f, Float.NaN, 0f, 0f, 0f),
+                    0f,
+                    0xFFFFFFFF.toInt(),
+                ),
             ),
         )
         assertNull(
             TouchDesignerProtocol.imu(
                 1L,
                 TouchDesignerMotionFrame(
-                    AttitudeEstimate(0f, Float.POSITIVE_INFINITY, 0f),
+                    AttitudeEstimate(0f, 0f, 0f, 1f, 0f, Float.POSITIVE_INFINITY, 0f),
                     0f,
                     0xFFFFFFFF.toInt(),
                 ),
@@ -113,7 +117,7 @@ class TouchDesignerTcpClientTest {
 
                 assertTrue(received.any {
                     it.startsWith("{\"cmd\":\"send_imu_values\",\"timestamp\":") &&
-                        it.endsWith("\"data\":{\"imu_values\":\"1.500000,-2.500000,3.500000,0.420000,#1234AB\"}}")
+                        it.endsWith("\"data\":{\"imu_values\":\"1.000000,0.000000,0.000000,0.000000,0.420000,#1234AB\"}}")
                 })
 
                 // With no new sample, the coalescing IMU stream must not repeat it.
@@ -167,7 +171,7 @@ class TouchDesignerTcpClientTest {
 
                 assertTrue(received.any {
                     it.startsWith("{\"cmd\":\"send_imu_values\",\"timestamp\":") &&
-                        it.endsWith("\"data\":{\"imu_values\":\"0.000000,0.000000,0.000000,0.000000,#40C020\"}}")
+                        it.endsWith("\"data\":{\"imu_values\":\"1.000000,0.000000,0.000000,0.000000,0.000000,#40C020\"}}")
                 })
             } finally {
                 client.close()

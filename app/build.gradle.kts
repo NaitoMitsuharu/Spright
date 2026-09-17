@@ -39,6 +39,7 @@ val selectedColorModelId = providers.gradleProperty("colorModel").orElse("qwen3-
 val selectedColorModel = colorModels.firstOrNull { it.id == selectedColorModelId.get() }
     ?: error("Unknown -PcolorModel=${selectedColorModelId.get()}; use ${colorModels.joinToString { it.id }}")
 val modelCacheDir = gradle.gradleUserHomeDir.resolve("caches/spright/models")
+val embeddedModelAssetsDir = layout.buildDirectory.dir("generated/embedded-model/assets").get().asFile
 
 fun sha256(file: File): String {
     val digest = MessageDigest.getInstance("SHA-256")
@@ -168,6 +169,8 @@ android {
         }
     }
 
+    sourceSets["main"].assets.srcDir(embeddedModelAssetsDir)
+
     externalNativeBuild {
         cmake {
             path("src/main/cpp/CMakeLists.txt")
@@ -221,6 +224,25 @@ val prepareColorModel by tasks.registering {
     group = "model"
     description = "Downloads and verifies -PcolorModel=${selectedColorModel.id}."
     doLast { prepareModel(selectedColorModel) }
+}
+
+val embedColorModel by tasks.registering {
+    group = "model"
+    description = "Embeds the selected color model in the APK assets."
+    dependsOn(prepareColorModel)
+    doLast {
+        val modelFile = prepareModel(selectedColorModel)
+        val assetFile = embeddedModelAssetsDir.resolve("models/${selectedColorModel.fileName}")
+        assetFile.parentFile.mkdirs()
+        assetFile.outputStream().buffered().use { output ->
+            modelFile.inputStream().buffered().use { input -> input.copyTo(output) }
+        }
+        logger.lifecycle("Embedded ${selectedColorModel.id} in APK assets: $assetFile")
+    }
+}
+
+tasks.matching { it.name == "preBuild" }.configureEach {
+    dependsOn(embedColorModel)
 }
 
 val pushColorModelDebug by tasks.registering {

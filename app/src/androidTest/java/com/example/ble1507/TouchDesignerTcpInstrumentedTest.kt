@@ -50,7 +50,7 @@ class TouchDesignerTcpInstrumentedTest {
                     lines.poll(100L, TimeUnit.MILLISECONDS)?.let(received::add)
                 }
                 assertTrue(received.any {
-                    it.contains("\"imu_values\":\"10.000000,-20.000000,30.000000,2.500000,#8A2BE2\"")
+                    it.contains("\"imu_values\":\"1.000000,0.000000,0.000000,0.000000,2.500000,#8A2BE2\"")
                 })
             } finally {
                 client.close()
